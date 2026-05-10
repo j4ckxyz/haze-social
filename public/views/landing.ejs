@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <link rel="stylesheet" href="/css/auth.css">
+    <title>haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <div class="landing">
+                <section class="landing-hero">
+                    <h1>haze</h1>
+
+                    <p>
+                        a small, invite-only place for posting thoughts, media, replies,
+                        and little updates with people you actually know.
+                    </p>
+
+                    <p>
+                        posts can have text, images, audio, video, albums, doodles,
+                        replies, edits, and visible edit history.
+                    </p>
+
+                    <div class="landing-actions">
+                        <a href="/login">log in</a>
+                        <a href="/signup">register with invite code</a>
+                    </div>
+                </section>
+
+                <section class="landing-card">
+                    <h2>how it works</h2>
+                    <ul>
+                        <li>sign in if you already have an account</li>
+                        <li>register with an invite code if you're new</li>
+                        <li>post, reply, edit, and keep a visible edit history</li>
+                        <li>the home feed is private to logged-in users</li>
+                    </ul>
+                </section>
+
+                <section class="landing-card">
+                    <h2>source</h2>
+                    <p>
+                        haze social is open source and self-hostable.
+                    </p>
+                    <p class="landing-note">
+                        <a href="https://github.com/j4ckxyz/haze-social">view the repo</a>
+                    </p>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

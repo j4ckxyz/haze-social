@@ -4,13 +4,13 @@
     <link rel="stylesheet" href="/css/post.css">
     <%- include ('fragments/global-head.ejs') %>
     <link rel="stylesheet" href="/css/new.css">
-    <title>+ new post</title>
+    <title>edit post</title>
 </head>
 <body>
 
     <div style="display: none" id="replying_to">
-        <% if (locals.replying_to) { %>
-            <%= replying_to.path %>
+        <% if (edit_post.replying_to) { %>
+            <%= edit_post.replying_to.path %>
         <% } %>
     </div>
 
@@ -243,6 +243,7 @@
     
 </body>
 
+    <input type="hidden" id="publish_endpoint" value="/edit/<%= edit_post.path %>">
 <script>
     const VAPID_KEY = '<%= process.env.VAPID_PUBLIC_KEY %>';
 </script>
@@ -251,6 +252,10 @@
 <script src="/js/postbuilder.js?v=2"></script>
 <script>
     treat_posts();
+    document.addEventListener("DOMContentLoaded", () => {
+        var el = add_post_block('text');
+        el.querySelector('textarea').value = `<%- edit_post.raw_body.replace(/\\/g, '\\\\').replace(/\`/g, '\\`').replace(/\\$/g, '\\$') %>`;
+    });
 </script>
 
 </html>

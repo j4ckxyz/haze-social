@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <title>edit history · haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <div><a href="/posts/<%= post.path %>">&lt;\-- back to post</a></div>
+            
+            <div class="post">
+                <table>
+                    <tr>
+                        <td colspan="2"><strong>current version</strong></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/posts/<%= post.path %>" title="go to post">--/></a>
+                        </td>
+                        <td class="flex">
+                            <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span></span>
+                        </td>
+                    </tr>
+                </table>
+                <div class="content">
+                    <%- post.body %>
+                </div>
+            </div>
+
+            <% if (history && history.length > 0) { %>
+                <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+                <div><strong>edit history</strong></div>
+                <% for (let h of history) { %>
+                    <div class="post" style="opacity: 0.8;">
+                        <table>
+                            <tr>
+                                <td>
+                                    <a href="/posts/<%= h.path %>" title="go to post">--/></a>
+                                </td>
+                                <td class="flex">
+                                    <span class="grow">from <a href="/posts/<%= h.author_path %>"><em><%= h.author %></em></a> · <span class="date-relative"><%= h.timestamp %></span></span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="content">
+                            <%- h.body %>
+                        </div>
+                    </div>
+                <% } %>
+            <% } %>
+        </main>
+    </div>
+    
+</body>
+
+<script src="/js/post.js"></script>
+<script>
+    treat_posts();
+</script>
+</html>

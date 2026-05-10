@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <link rel="stylesheet" href="/css/auth.css">
+    <title>log in · haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <div class="auth-form">
+                <h2>log in</h2>
+
+                <% if (locals.error) { %>
+                    <div class="auth-error"><%= error %></div>
+                <% } %>
+
+                <form method="POST" action="/login">
+                    <label for="login-username">username</label><br>
+                    <input autofocus type="text" id="login-username" name="username" placeholder="your name" required
+                        value="<%= locals.username || '' %>" autocomplete="username" autocapitalize="off">
+
+                    <br><br>
+
+                    <label for="login-password">password</label><br>
+                    <input type="password" id="login-password" name="password" placeholder="password" required autocomplete="current-password">
+
+                    <br><br>
+
+                    <button type="submit">log in</button>
+                </form>
+
+                <p class="auth-switch">
+                    don't have an account? <a href="/signup">sign up</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

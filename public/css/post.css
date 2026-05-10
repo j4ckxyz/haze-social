@@ -1,5 +1,7 @@
 .post {
-    width: var(--max-post-width);
+    width: 100%;
+    max-width: var(--max-post-width);
+    box-sizing: border-box;
     word-break: break-word;
     border: 1px solid var(--post-border);
     background: var(--post-bg);
@@ -8,14 +10,14 @@
 .post > table {
     width: 100%;
     font-family: monospace;
-    margin-left: .5em;
-    margin-right: .5em;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
     width: calc(100% - 1em);
 }
 .post > table td {
     padding: 0;
-    padding-left: .5em;
-    padding-right: .5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
     white-space: nowrap;
     vertical-align: top;
 }
@@ -54,24 +56,29 @@
 .block {
     position: relative;
     width: 100%;
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
 }
 
 .post .block {
     margin-bottom: 0;
 }
 
-.text, .audio, .image, .video {
+.text,
+.audio,
+.image,
+.video {
     line-height: 0;
 }
 
 /* media */
 
-.image, .video {
+.image,
+.video {
     text-align: center;
     cursor: pointer;
 }
-.image img, .video video {
+.image img,
+.video video {
     width: 100%;
 }
 
@@ -146,8 +153,9 @@
     display: flex;
 }
 
-.counter, .navigation {
-    font-size: .8em;
+.counter,
+.navigation {
+    font-size: 0.8em;
     pointer-events: none;
     position: absolute;
 }
@@ -156,7 +164,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: .5em;
+    padding: 0.5em;
     padding-bottom: 1em;
 }
 .bubbles > div {
@@ -165,7 +173,10 @@
     height: 5px;
     background: var(--album-bubbles);
     border-radius: 50%;
-    transition: width 200ms, height 200ms, margin-left 200ms;
+    transition:
+        width 200ms,
+        height 200ms,
+        margin-left 200ms;
 }
 .bubbles > div.selected {
     background: var(--theme-color);
@@ -184,21 +195,22 @@
 .counter {
     top: 0;
     right: 0;
-    padding: .25em .5em;
+    padding: 0.25em 0.5em;
     border-radius: 2em;
-    margin: .5em;
+    margin: 0.5em;
     font-family: monospace;
     color: var(--dark-mode-color);
-    background: rgba(0, 0, 0, .7);
+    background: rgba(0, 0, 0, 0.7);
 }
 
-.read-more, .post-not-live-banner {
+.read-more,
+.post-not-live-banner {
     font-family: monospace;
 }
 
 .post-not-live-banner {
     border: 1px solid var(--alert-color);
-    padding: .5em
+    padding: 0.5em;
 }
 .post-not-live-banner em {
     color: var(--alert-color);

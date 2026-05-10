@@ -43,7 +43,15 @@ if (fs.existsSync('db/db.db')) {
             "path"	TEXT,
             "replying_to" TEXT,
             "live"	INTEGER,
+            "edited" INTEGER DEFAULT 0,
             PRIMARY KEY("post_id")
+        );
+        CREATE TABLE "post_history" (
+            "history_id" INTEGER,
+            "path" TEXT,
+            "body" TEXT,
+            "timestamp" TEXT,
+            PRIMARY KEY("history_id")
         );
         CREATE TABLE "subscriptions" (
             "subscription_id"	INTEGER,
@@ -51,6 +59,97 @@ if (fs.existsSync('db/db.db')) {
             "json"	TEXT,
             "endpoint"	TEXT,
             PRIMARY KEY("subscription_id")
+        );
+        CREATE TABLE "users" (
+            "user_id"	INTEGER,
+            "username"	TEXT UNIQUE,
+            "password_hash"	TEXT,
+            "is_admin"	INTEGER DEFAULT 0,
+            "created_at"	INTEGER,
+            PRIMARY KEY("user_id")
+        );
+        CREATE TABLE "invite_codes" (
+            "code_id"	INTEGER,
+            "code"	TEXT UNIQUE,
+            "created_by"	INTEGER,
+            "used_by"	INTEGER,
+            "created_at"	INTEGER,
+            "used_at"	INTEGER,
+            PRIMARY KEY("code_id")
+        );
+        CREATE TABLE "sessions" (
+            "session_id"	INTEGER,
+            "token"	TEXT UNIQUE,
+            "user_id"	INTEGER,
+            "created_at"	INTEGER,
+            "expires_at"	INTEGER,
+            PRIMARY KEY("session_id")
+        );
+    `);
+}
+
+// migrate existing databases — add tables if they don't exist
+function tableExists(name) {
+    return db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name);
+}
+
+if (!tableExists('users')) {
+    db.exec(`
+        CREATE TABLE "users" (
+            "user_id"	INTEGER,
+            "username"	TEXT UNIQUE,
+            "password_hash"	TEXT,
+            "is_admin"	INTEGER DEFAULT 0,
+            "created_at"	INTEGER,
+            PRIMARY KEY("user_id")
+        );
+    `);
+}
+if (!tableExists('invite_codes')) {
+    db.exec(`
+        CREATE TABLE "invite_codes" (
+            "code_id"	INTEGER,
+            "code"	TEXT UNIQUE,
+            "created_by"	INTEGER,
+            "used_by"	INTEGER,
+            "created_at"	INTEGER,
+            "used_at"	INTEGER,
+            PRIMARY KEY("code_id")
+        );
+    `);
+}
+
+// Check if posts table has edited column (migration)
+try {
+    const tableInfo = db.pragma("table_info(posts)");
+    const hasEdited = tableInfo.some(column => column.name === 'edited');
+    if (!hasEdited) {
+        db.exec(`ALTER TABLE "posts" ADD COLUMN "edited" INTEGER DEFAULT 0;`);
+    }
+} catch (e) {
+    console.error("Migration error adding edited column:", e);
+}
+
+if (!tableExists('post_history')) {
+    db.exec(`
+        CREATE TABLE "post_history" (
+            "history_id" INTEGER,
+            "path" TEXT,
+            "body" TEXT,
+            "timestamp" TEXT,
+            PRIMARY KEY("history_id")
+        );
+    `);
+}
+if (!tableExists('sessions')) {
+    db.exec(`
+        CREATE TABLE "sessions" (
+            "session_id"	INTEGER,
+            "token"	TEXT UNIQUE,
+            "user_id"	INTEGER,
+            "created_at"	INTEGER,
+            "expires_at"	INTEGER,
+            PRIMARY KEY("session_id")
         );
     `);
 }
@@ -90,9 +189,9 @@ exports.update = (table, where, set) => {
     var where_conditions = "";
     for (let key in where) {
         obj["where_"+key] = where[key];
-        where_conditions += key + "=@where_" + key + ", ";
+        where_conditions += key + "=@where_" + key + " AND ";
     }
-    where_conditions = where_conditions.slice(0, -2);
+    where_conditions = where_conditions.slice(0, -5);
 
     var set_conditions = "";
     for (let key in set) {

@@ -1,6 +1,19 @@
 <header>
-    <a href="/">untitled social</a>
-    <a href="/new" class="new-post-button">+</a>
-    <div class="grow">for us</div>
-    <a href="/posts" class="index-button">i</a>
+    <a href="/">haze</a>
+    <% if (locals.user) { %>
+        <a href="/new" class="new-post-button">+</a>
+        <div class="grow">for us</div>
+        <% if (user.is_admin) { %>
+            <a href="/admin">admin</a>
+        <% } %>
+        <a href="/posts" class="index-button">i</a>
+        <span class="header-user"><em><%= user.username %></em></span>
+        <form method="POST" action="/logout" style="display:inline; margin:0; padding:0;">
+            <button type="submit" class="logout-button">log out</button>
+        </form>
+    <% } else { %>
+        <div class="grow">for us</div>
+        <a href="/login">log in</a>
+        <a href="/signup">sign up</a>
+    <% } %>
 </header>

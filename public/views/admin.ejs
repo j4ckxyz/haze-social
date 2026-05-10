@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <link rel="stylesheet" href="/css/auth.css">
+    <title>admin · haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <div class="admin-panel">
+                <h2>invite codes</h2>
+
+                <div class="invite-actions">
+                    <button id="generate-invite-btn" onclick="generateInvite()">+ generate invite code</button>
+                </div>
+
+                <div id="new-code-display" class="new-code hidden">
+                    <span>new code: </span>
+                    <code id="new-code-value"></code>
+                    <button class="copy-btn" onclick="copyCode()">copy</button>
+                </div>
+
+                <table class="invite-table">
+                    <tr>
+                        <th>code</th>
+                        <th>status</th>
+                        <th>created by</th>
+                    </tr>
+                    <% for (let invite of invites) { %>
+                        <tr class="<%= invite.used_by ? 'used' : 'unused' %>">
+                            <td><code><%= invite.code %></code></td>
+                            <td>
+                                <% if (invite.used_by) { %>
+                                    used by <em><%= invite.used_by_username %></em>
+                                <% } else { %>
+                                    <span class="unused-badge">available</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (invite.created_by_username) { %>
+                                    <%= invite.created_by_username %>
+                                <% } else { %>
+                                    <i>system</i>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% } %>
+                    <% if (invites.length === 0) { %>
+                        <tr>
+                            <td colspan="3"><i>no invite codes yet</i></td>
+                        </tr>
+                    <% } %>
+                </table>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+<script>
+    async function generateInvite() {
+        const btn = document.getElementById('generate-invite-btn');
+        btn.disabled = true;
+        btn.textContent = 'generating...';
+
+        try {
+            const res = await fetch('/api/admin/generate-invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data.code) {
+                const display = document.getElementById('new-code-display');
+                const value = document.getElementById('new-code-value');
+                value.textContent = data.code;
+                display.classList.remove('hidden');
+
+                // reload after a moment so the table updates
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                alert(data.error || 'failed to generate code');
+            }
+        } catch (err) {
+            alert('error generating invite code');
+        }
+
+        btn.disabled = false;
+        btn.textContent = '+ generate invite code';
+    }
+
+    function copyCode() {
+        const code = document.getElementById('new-code-value').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'copied!';
+            setTimeout(() => btn.textContent = 'copy', 2000);
+        });
+    }
+</script>
+
+</html>

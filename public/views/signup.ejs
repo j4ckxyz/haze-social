@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <link rel="stylesheet" href="/css/auth.css">
+    <title>sign up · haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <div class="auth-form">
+                <h2>sign up</h2>
+
+                <% if (locals.error) { %>
+                    <div class="auth-error"><%= error %></div>
+                <% } %>
+
+                <form method="POST" action="/signup">
+                    <label for="signup-username">username</label><br>
+                    <input autofocus type="text" id="signup-username" name="username" placeholder="your name" required
+                        value="<%= locals.username || '' %>" autocomplete="username" autocapitalize="off">
+
+                    <br><br>
+
+                    <label for="signup-password">password</label><br>
+                    <input type="password" id="signup-password" name="password" placeholder="password" required autocomplete="new-password">
+
+                    <br><br>
+
+                    <label for="signup-confirm">confirm password</label><br>
+                    <input type="password" id="signup-confirm" name="confirm" placeholder="type it again" required autocomplete="new-password">
+
+                    <br><br>
+
+                    <label for="signup-invite">invite code</label><br>
+                    <input type="text" id="signup-invite" name="invite_code" placeholder="enter invite code" required
+                        value="<%= locals.invite_code || '' %>" autocapitalize="off" autocomplete="off">
+                    <div class="auth-hint">
+                        <small>don't have one? ask the admin for an invite code.</small>
+                    </div>
+
+                    <br>
+
+                    <button type="submit">sign up</button>
+                </form>
+
+                <p class="auth-switch">
+                    already have an account? <a href="/login">log in</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

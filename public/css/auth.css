@@ -1,0 +1,219 @@
+/* auth pages */
+
+.auth-form {
+    max-width: 20rem;
+}
+
+.auth-form h2 {
+    font-family: monospace;
+    font-weight: normal;
+    margin: 0 0 1em 0;
+}
+
+.auth-form label {
+    font-family: monospace;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="password"] {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px dotted var(--theme-color);
+    padding: 0.5em;
+    font-size: inherit;
+    background: var(--bg);
+    color: var(--color);
+}
+
+.auth-form input:focus {
+    outline: 1px solid var(--theme-color);
+    border-style: solid;
+}
+
+.auth-form button[type="submit"] {
+    border: 1px solid var(--theme-color);
+    color: var(--theme-color);
+    background: transparent;
+    padding: 0.5em 1.5em;
+    cursor: pointer;
+    font-family: monospace;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}
+
+.auth-form button[type="submit"]:hover {
+    background: var(--theme-color);
+    color: var(--bg);
+    text-decoration: none;
+}
+
+.auth-error {
+    border: 1px dotted var(--alert-color);
+    color: var(--alert-color);
+    padding: 0.5em;
+    margin-bottom: 1em;
+    font-family: monospace;
+}
+
+.auth-hint {
+    margin-top: 0.25em;
+    opacity: 0.7;
+}
+
+.auth-switch {
+    font-family: monospace;
+    margin-top: 1.5em;
+}
+
+/* admin */
+
+.admin-panel {
+    max-width: 35rem;
+}
+
+.admin-panel h2 {
+    font-family: monospace;
+    font-weight: normal;
+    margin: 0 0 1em 0;
+}
+
+.invite-actions {
+    margin-bottom: 1em;
+}
+
+.invite-actions button {
+    border: 1px solid var(--theme-color);
+    color: var(--theme-color);
+    font-family: monospace;
+}
+.invite-actions button:hover {
+    background: var(--theme-color);
+    color: var(--bg);
+}
+
+.new-code {
+    border: 1px dotted var(--theme-color);
+    padding: 0.5em;
+    margin-bottom: 1em;
+    font-family: monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+.new-code.hidden {
+    display: none;
+}
+
+.new-code code {
+    font-weight: bold;
+    flex-grow: 1;
+    user-select: all;
+}
+
+.copy-btn {
+    font-family: monospace;
+    font-size: 0.85em;
+    padding: 0.25em 0.5em;
+    border: 1px dotted var(--theme-color);
+    color: var(--theme-color);
+    background: transparent;
+    cursor: pointer;
+}
+.copy-btn:hover {
+    background: var(--theme-color);
+    color: var(--bg);
+}
+
+.invite-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+.invite-table th,
+.invite-table td {
+    text-align: left;
+    padding: 0.35em 0.5em;
+    border-bottom: 1px dotted var(--post-border);
+}
+.invite-table th {
+    font-weight: normal;
+    opacity: 0.6;
+}
+.invite-table tr.used {
+    opacity: 0.5;
+}
+
+.unused-badge {
+    color: var(--theme-color);
+}
+
+/* landing page */
+
+.landing {
+    max-width: var(--max-post-width);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.landing-hero {
+    border: 1px dotted var(--theme-color);
+    padding: 1em;
+    background: var(--post-bg);
+}
+
+.landing-hero h1 {
+    margin: 0 0 0.5em 0;
+    font-family: monospace;
+    font-weight: normal;
+    line-height: 1.1;
+}
+
+.landing-hero p {
+    margin: 0.75em 0;
+}
+
+.landing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75em;
+    margin-top: 1em;
+}
+
+.landing-actions a {
+    border: 1px solid var(--theme-color);
+    padding: 0.5em 0.75em;
+    font-family: monospace;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}
+
+.landing-actions a:hover,
+.landing-actions a:active {
+    background: var(--theme-color);
+    color: var(--bg);
+    text-decoration: none;
+}
+
+.landing-card {
+    border: 1px solid var(--post-border);
+    padding: 1em;
+    background: var(--post-bg);
+    margin-top: 0.75em;
+}
+
+.landing-card h2 {
+    margin: 0 0 0.5em 0;
+    font-family: monospace;
+    font-weight: normal;
+}
+
+.landing-card ul {
+    margin-bottom: 0;
+    padding-left: 1.25em;
+}
+
+.landing-note {
+    font-family: monospace;
+    opacity: 0.75;
+}

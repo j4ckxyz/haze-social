@@ -14,10 +14,11 @@
     --normal-button-active-color: lightgray;
     --album-bg: var(--dark-mode-bg);
     --album-bubbles: var(--post-border);
-    --dialog-backdrop: rgba(255, 255, 255, .7);
+    --dialog-backdrop: rgba(255, 255, 255, 0.7);
 }
 
-body, html {
+body,
+html {
     margin: 0;
     font-family: sans-serif;
     line-height: var(--line-height);
@@ -49,7 +50,12 @@ body {
     display: none;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     line-height: 1em;
 }
 
@@ -70,7 +76,9 @@ dialog::backdrop {
     background: var(--dialog-backdrop);
 }
 
-input, textarea, button {
+input,
+textarea,
+button {
     font-family: inherit;
     font-size: inherit;
     color: inherit;
@@ -78,7 +86,8 @@ input, textarea, button {
     background: var(--bg);
 }
 
-a, a:visited {
+a,
+a:visited {
     color: var(--theme-color);
     text-decoration: underline;
     text-decoration-style: dotted;
@@ -88,7 +97,8 @@ a, a:visited {
     background: none;
     padding: 0;
 }
-a:hover, a:active {
+a:hover,
+a:active {
     background: var(--theme-color);
     color: var(--bg);
     text-decoration: none;
@@ -113,19 +123,26 @@ dialog button:hover {
     color: var(--bg);
 }
 
-button, input[type="button"], input[type="submit"], .dialog-close-button {
+button,
+input[type="button"],
+input[type="submit"],
+.dialog-close-button {
     border: 1px solid var(--color);
     color: var(--color);
-    padding: .5em;
+    padding: 0.5em;
     text-decoration: underline;
     text-decoration-style: dotted;
     cursor: pointer;
     background: transparent;
 }
-button:hover, button:active,
-input[type="submit"]:hover, input[type="submit"]:active,
-input[type="button"]:hover, input[type="button"]:active,
-.dialog-close-button:hover, .dialog-close-button:active {
+button:hover,
+button:active,
+input[type="submit"]:hover,
+input[type="submit"]:active,
+input[type="button"]:hover,
+input[type="button"]:active,
+.dialog-close-button:hover,
+.dialog-close-button:active {
     background: var(--normal-button-active-color);
     color: var(--color);
     text-decoration: none;
@@ -146,7 +163,8 @@ input[type="range"]:disabled {
     flex-shrink: 0;
     transition: scale 100ms;
 }
-.icon-button:hover, .icon-button:active {
+.icon-button:hover,
+.icon-button:active {
     background: transparent;
 }
 .icon-button img {
@@ -154,23 +172,28 @@ input[type="range"]:disabled {
     vertical-align: middle;
 }
 .icon-button:active {
-    scale: .85;
+    scale: 0.85;
 }
 
 /* layout */
 
 main {
-    padding: .75em .75em;
+    padding: 0.75em 0.75em;
     display: flex;
     flex-direction: column;
-    gap: .75em;
+    gap: 0.75em;
+    width: min(100%, calc(var(--max-post-width) + 1.5em));
+    max-width: calc(var(--max-post-width) + 1.5em);
+    margin: 0 auto;
+    box-sizing: border-box;
+    align-items: stretch;
 }
 
 .posts-list {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: .25em;
+    gap: 0.25em;
     font-family: monospace;
     width: 100%;
     box-sizing: border-box;
@@ -178,8 +201,10 @@ main {
 
 /*  */
 
-header, footer, nav {
-    padding: .5em .75em;
+header,
+footer,
+nav {
+    padding: 0.5em 0.75em;
 }
 
 header {
@@ -187,7 +212,7 @@ header {
     border-bottom: 1px dotted var(--theme-color);
 
     display: flex;
-    gap: .5em 2em;
+    gap: 0.5em 2em;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -230,6 +255,28 @@ footer > div {
     justify-content: end;
 }
 footer .flex {
-    gap: .25em 2em;
+    gap: 0.25em 2em;
     flex-wrap: wrap;
+}
+
+.logout-button {
+    color: var(--theme-color);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+}
+.logout-button:hover,
+.logout-button:active {
+    background: var(--theme-color);
+    color: var(--bg);
+    text-decoration: none;
+}
+
+.header-user {
+    font-family: monospace;
 }

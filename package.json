@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "js/index.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "generate-invite": "node generate-invite.js"
   },
   "author": "",
   "license": "ISC",
@@ -12,9 +13,12 @@
     "backblaze-b2": "^1.7.0",
     "better-sqlite3": "^11.3.0",
     "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "diff": "^9.0.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
+    "htmldiff-js": "^1.0.5",
     "marked": "^14.1.2",
     "multer": "^2.0.2",
     "path": "^0.12.7",
