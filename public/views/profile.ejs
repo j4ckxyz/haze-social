@@ -11,9 +11,14 @@
 
     <div class="scroll-container">
         <main class="profile-page">
-            <section class="profile-summary"<% if (profile.bg_color) { %> style="--profile-bg:<%= profile.bg_color %>"<% } %>>
+            <section class="profile-summary"<% if (profile.bg_color) { %> style="background-color:<%= profile.bg_color %>33; border-color:<%= profile.bg_color %>"<% } %>>
                 <div class="profile-heading">
-                    <h1>@<%= profile.username %></h1>
+                    <div class="profile-identity">
+                        <% if (profile.profile_pic) { %>
+                            <img class="profile-avatar" src="<%= profile.profile_pic %>" alt="">
+                        <% } %>
+                        <h1>@<%= profile.username %></h1>
+                    </div>
                     <a href="/new" aria-label="write a new post">write post</a>
                 </div>
 

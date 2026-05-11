@@ -133,6 +133,8 @@ app.get("/posts/:author/:id", (req, res) => {
   const parsed = parse_post_with_replies(post);
   const absoluteUrl = get_absolute_request_url(req, `/posts/${path}`);
   const excerpt = get_post_embed_text(post.body);
+  const ogMedia = get_first_media_url(post.body);
+  const ogMediaUrl = ogMedia ? get_absolute_request_url(req, ogMedia) : null;
 
   res.render("post", {
     ...parsed,
@@ -141,6 +143,7 @@ app.get("/posts/:author/:id", (req, res) => {
       description: excerpt,
       url: absoluteUrl,
       type: "article",
+      image: ogMediaUrl,
     },
   });
 });
@@ -448,6 +451,7 @@ app.get("/settings", auth.requireAuth, (req, res) => {
     hooks,
     accountCreatedAt: userRow ? userRow.created_at : null,
     profileBgColor: normalize_hex_color(userRow && userRow.profile_bg_color) || "#ffffff",
+    profilePic: userRow ? userRow.profile_pic : null,
     newApiKey: req.query.new_api_key || null,
     created: req.query.created || null,
     error: req.query.error || null,
@@ -462,6 +466,27 @@ app.post("/settings/profile", auth.requireAuth, upload.none, (req, res) => {
 
   sqlite.update("users", { user_id: req.user.user_id }, { profile_bg_color: color });
   return res.redirect("/settings?created=profile_updated");
+});
+
+app.post("/settings/profile-pic", auth.requireAuth, upload.uploadMulter, async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.redirect(`/settings?error=${encodeURIComponent("no file uploaded")}`);
+  }
+
+  const file = req.files[0];
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(ext)) {
+    return res.redirect(`/settings?error=${encodeURIComponent("profile pic must be an image (jpg, png, gif, webp)")}`);
+  }
+
+  try {
+    const url = await upload.storeMedia(file);
+    sqlite.update("users", { user_id: req.user.user_id }, { profile_pic: url });
+    return res.redirect("/settings?created=pic_updated");
+  } catch (err) {
+    console.error("profile pic upload error:", err);
+    return res.redirect(`/settings?error=${encodeURIComponent("upload failed")}`);
+  }
 });
 
 app.post("/settings/api-keys/create", auth.requireAuth, upload.none, (req, res) => {
@@ -711,6 +736,7 @@ function render_author_profile(req, res, mode) {
       author_path: authorPath,
       created_at: profileUser.created_at,
       bg_color: profileColor,
+      profile_pic: profileUser.profile_pic,
       stats,
       mode,
     },
@@ -1149,6 +1175,20 @@ function has_media_markdown(body) {
   return /!\[(album|image|audio|video)\]\(/i.test(String(body || ""));
 }
 
+function get_first_media_url(body) {
+  const str = String(body || "");
+  // match ![image](url) or ![video](url) or ![audio](url)
+  const match = str.match(/!\[(?:image|video|audio)\]\(([^)]+)\)/i);
+  if (match) return match[1];
+  // match ![album](url1,url2,...) — return first url
+  const albumMatch = str.match(/!\[album\]\(([^)]+)\)/i);
+  if (albumMatch) {
+    const first = albumMatch[1].split(",")[0].trim();
+    if (first) return first;
+  }
+  return null;
+}
+
 function normalize_hex_color(value) {
   const str = String(value || "").trim();
   if (!/^#[0-9a-fA-F]{6}$/.test(str)) return null;
@@ -1156,7 +1196,7 @@ function normalize_hex_color(value) {
 }
 
 function get_user_by_author_path(authorPath) {
-  const users = sqlite.db.prepare("SELECT username, created_at, profile_bg_color FROM users ORDER BY user_id ASC").all();
+  const users = sqlite.db.prepare("SELECT username, created_at, profile_bg_color, profile_pic FROM users ORDER BY user_id ASC").all();
   for (let user of users) {
     if (get_author_path(user.username) === authorPath) return user;
   }

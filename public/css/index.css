@@ -27,10 +27,25 @@
 }
 
 .profile-summary {
-    border: 1px solid var(--post-border);
-    background: color-mix(in srgb, var(--post-bg) 76%, var(--profile-bg, #9ebcf7) 24%);
-    padding: var(--space-md);
+    border: 2px solid var(--post-border);
+    background: var(--post-bg);
+    padding: var(--space-lg);
     font-family: monospace;
+}
+
+.profile-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.profile-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--post-border);
+    flex-shrink: 0;
 }
 
 .profile-heading {

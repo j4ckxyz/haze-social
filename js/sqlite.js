@@ -165,6 +165,17 @@ try {
     console.error("Migration error adding profile_bg_color column:", e);
 }
 
+// Check if users table has profile_pic column (migration)
+try {
+    const usersTableInfo = db.pragma("table_info(users)");
+    const hasProfilePic = usersTableInfo.some(column => column.name === 'profile_pic');
+    if (!hasProfilePic) {
+        db.exec(`ALTER TABLE "users" ADD COLUMN "profile_pic" TEXT;`);
+    }
+} catch (e) {
+    console.error("Migration error adding profile_pic column:", e);
+}
+
 if (!tableExists('post_history')) {
     db.exec(`
         CREATE TABLE "post_history" (

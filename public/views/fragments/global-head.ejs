@@ -7,6 +7,7 @@
 <% const metaDescription = (locals.meta && locals.meta.description) ? locals.meta.description : 'haze social'; %>
 <% const metaUrl = (locals.meta && locals.meta.url) ? locals.meta.url : null; %>
 <% const metaType = (locals.meta && locals.meta.type) ? locals.meta.type : 'website'; %>
+<% const metaImage = (locals.meta && locals.meta.image) ? locals.meta.image : null; %>
 
 <meta name="description" content="<%= metaDescription %>">
 <meta property="og:title" content="<%= metaTitle %>">
@@ -14,7 +15,9 @@
 <meta property="og:type" content="<%= metaType %>">
 <% if (metaUrl) { %><meta property="og:url" content="<%= metaUrl %>"><% } %>
 <meta property="og:site_name" content="haze">
-<meta name="twitter:card" content="summary">
+<% if (metaImage) { %><meta property="og:image" content="<%= metaImage %>"><% } %>
+<meta name="twitter:card" content="<%= metaImage ? 'summary_large_image' : 'summary' %>">
+<% if (metaImage) { %><meta name="twitter:image" content="<%= metaImage %>"><% } %>
 <meta name="twitter:title" content="<%= metaTitle %>">
 <meta name="twitter:description" content="<%= metaDescription %>">
 
