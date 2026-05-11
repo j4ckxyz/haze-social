@@ -14,8 +14,8 @@
             <% if (timestamp != -1) { %>
                 <% if (!locals.live || locals.live == false) { %>
                     <div class="post-not-live-banner">
-                        <em>this post is being processed :)</em><br>
-                        <span>you don't have to stay here, but the page will automatically refresh once your post is live.</span>
+                        <em>this post is being processed :)</em>
+                        <span>the page will refresh once it's live.</span>
                     </div>
                 <% } %>
 
@@ -62,9 +62,7 @@
                         <div class="post">
                             <table>
                                 <tr>
-                                    <td>
-                                        <a href="/posts/<%= post.path %>" class="post-open-link" title="open reply">open</a>
-                                    </td>
+                                    <td></td>
                                     <td class="flex post-line">
                                         <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" class="post-edited-link">(edited)</a><% } %></span>
                                         <span class="post-actions">

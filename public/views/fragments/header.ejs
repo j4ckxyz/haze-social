@@ -2,7 +2,6 @@
     <a href="/" aria-label="home feed">haze</a>
     <% if (locals.user) { %>
         <a href="/new" class="new-post-button" aria-label="write a new post">new</a>
-        <div class="grow">for us</div>
         <nav class="header-actions" aria-label="primary">
             <% if (user.is_admin) { %>
                 <a href="/admin">admin</a>
@@ -10,12 +9,13 @@
             <a href="/settings">settings</a>
             <a href="/posts" class="index-button">browse</a>
         </nav>
+        <div class="grow"></div>
         <span class="header-user"><em><%= user.username %></em></span>
         <form method="POST" action="/logout" class="header-logout-form">
             <button type="submit" class="logout-button">log out</button>
         </form>
     <% } else { %>
-        <div class="grow">for us</div>
+        <div class="grow"></div>
         <nav class="header-actions" aria-label="auth">
             <a href="/login">log in</a>
             <a href="/signup">sign up</a>

@@ -29,9 +29,7 @@
                 <div class="post">
                     <table>
                         <tr>
-                            <td>
-                                <a href="/posts/<%= post.path %>" class="post-open-link" title="open post">open</a>
-                            </td>
+                            <td></td>
                             <td class="flex post-line">
                                 <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" class="post-edited-link">(edited)</a><% } %></span>
                                 <span class="post-actions">
