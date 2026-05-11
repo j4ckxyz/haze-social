@@ -17,7 +17,6 @@
 }
 
 .post > table {
-    width: 100%;
     font-family: monospace;
     margin-left: var(--space-sm);
     margin-right: var(--space-sm);

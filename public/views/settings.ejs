@@ -43,7 +43,7 @@
                 <h3>profile picture</h3>
                 <% if (profilePic) { %>
                     <p class="settings-note">current:</p>
-                    <img src="<%= profilePic %>" alt="" style="width:4rem;height:4rem;border-radius:50%;object-fit:cover;border:2px solid var(--post-border);margin-bottom:0.5rem;">
+                    <img class="settings-avatar-preview" src="<%= profilePic %>" alt="">
                 <% } %>
                 <form method="POST" action="/settings/profile-pic" enctype="multipart/form-data" class="settings-form-inline">
                     <input type="file" name="files" accept="image/*" required>

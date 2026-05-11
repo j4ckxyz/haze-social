@@ -501,7 +501,7 @@ function start_recording(block) {
     };
 
     let onError = (error) => {
-      console.log(error);
+      console.error(error);
       alert("error occured while recording :(");
       block.remove();
     };

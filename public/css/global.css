@@ -235,10 +235,6 @@ header a {
     text-align: center;
 }
 
-header > .grow {
-    text-align: left;
-}
-
 .header-actions {
     display: flex;
     gap: var(--space-sm);

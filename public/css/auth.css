@@ -267,6 +267,15 @@
     padding: var(--space-md);
     max-width: var(--max-post-width);
 }
+.settings-avatar-preview {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--post-border);
+    margin-bottom: 0.5rem;
+}
+
 .settings-panel + .settings-panel {
     margin-top: var(--space-xl);
 }
