@@ -14,6 +14,7 @@
         <main>
             <div class="auth-form">
                 <h2>sign up</h2>
+                <p class="auth-hint">create your account with an invite code from someone in your group.</p>
 
                 <% if (locals.error) { %>
                     <div class="auth-error"><%= error %></div>
@@ -26,7 +27,7 @@
 
                     <br><br>
 
-                    <label for="signup-password">password</label><br>
+                    <label for="signup-password">password (at least 4 characters)</label><br>
                     <input type="password" id="signup-password" name="password" placeholder="password" required autocomplete="new-password">
 
                     <br><br>
@@ -40,7 +41,7 @@
                     <input type="text" id="signup-invite" name="invite_code" placeholder="enter invite code" required
                         value="<%= locals.invite_code || '' %>" autocapitalize="off" autocomplete="off">
                     <div class="auth-hint">
-                        <small>don't have one? ask the admin for an invite code.</small>
+                        <small>don't have one? ask the person who invited you.</small>
                     </div>
 
                     <br>

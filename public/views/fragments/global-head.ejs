@@ -1,7 +1,23 @@
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="white">
 <meta name="background-color" content="white">
+
+<% const metaTitle = (locals.meta && locals.meta.title) ? locals.meta.title : 'haze'; %>
+<% const metaDescription = (locals.meta && locals.meta.description) ? locals.meta.description : 'haze social'; %>
+<% const metaUrl = (locals.meta && locals.meta.url) ? locals.meta.url : null; %>
+<% const metaType = (locals.meta && locals.meta.type) ? locals.meta.type : 'website'; %>
+
+<meta name="description" content="<%= metaDescription %>">
+<meta property="og:title" content="<%= metaTitle %>">
+<meta property="og:description" content="<%= metaDescription %>">
+<meta property="og:type" content="<%= metaType %>">
+<% if (metaUrl) { %><meta property="og:url" content="<%= metaUrl %>"><% } %>
+<meta property="og:site_name" content="haze">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<%= metaTitle %>">
+<meta name="twitter:description" content="<%= metaDescription %>">
+
 <link rel="manifest" href="/manifest.json" />
 <link rel="icon" type="image/png" href="/res/icons/32.png">
 <link rel="stylesheet" href="/css/global.css">

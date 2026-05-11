@@ -20,6 +20,10 @@ It is intentionally simple: Node.js, Express, EJS templates, SQLite, plain CSS, 
 - optional Backblaze B2-compatible remote media storage
 - progressive web app support
 - optional push notifications
+- per-user API keys from settings
+- JSON API for feed + posts + account info
+- outgoing webhooks for new posts (Discord/bot relays)
+- public direct post links with Open Graph / Twitter embed metadata
 
 ## Requirements
 
@@ -181,6 +185,9 @@ TMP_UPLOAD_DIR=tmp
 # VAPID_ADMIN_EMAIL=
 # VAPID_PUBLIC_KEY=
 # VAPID_PRIVATE_KEY=
+
+# Optional absolute base URL for embeds/webhooks
+# PUBLIC_BASE_URL=https://your-domain.example
 ```
 
 ## Raspberry Pi self-hosting guide
@@ -335,19 +342,34 @@ cp db/db.db ~/haze-backups/db-$(date +%F).db
 rsync -a public/media/ ~/haze-backups/media/
 ```
 
-## Updating
+## Updating safely (without losing data)
+
+Use the built-in safe updater:
 
 ```sh
-git pull
-npm install
+npm run safe-update
+```
+
+That command will:
+1. create a timestamped backup in `backups/`
+2. pull latest code (`git pull --ff-only`)
+3. run `npm install`
+
+Then restart your service:
+
+```sh
 sudo systemctl restart haze-social
 ```
 
-If you run manually instead of systemd, stop the old process and run:
+You can also run only the backup step manually:
 
 ```sh
-npm start
+npm run backup-instance
 ```
+
+## API and webhooks
+
+See `API.md` for API key auth, endpoint examples, and webhook payload/signature details.
 
 ## Development notes
 

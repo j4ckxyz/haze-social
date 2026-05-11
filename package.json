@@ -4,7 +4,9 @@
   "main": "js/index.js",
   "scripts": {
     "start": "node app.js",
-    "generate-invite": "node generate-invite.js"
+    "generate-invite": "node generate-invite.js",
+    "backup-instance": "node scripts/backup-instance.js",
+    "safe-update": "bash scripts/safe-update.sh"
   },
   "author": "",
   "license": "ISC",

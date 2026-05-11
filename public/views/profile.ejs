@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('fragments/global-head.ejs') %>
+    <title><%= profile.username %> · haze</title>
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+
+    <%- include('fragments/header.ejs')  %>
+
+    <div class="scroll-container">
+        <main class="profile-page">
+            <section class="profile-summary"<% if (profile.bg_color) { %> style="--profile-bg:<%= profile.bg_color %>"<% } %>>
+                <div class="profile-heading">
+                    <h1>@<%= profile.username %></h1>
+                    <a href="/new" aria-label="write a new post">write post</a>
+                </div>
+
+                <p class="profile-meta">
+                    <% if (profile.created_at) { %>
+                        here since <span class="date"><%= profile.created_at %></span>
+                    <% } else { %>
+                        private haze account
+                    <% } %>
+                </p>
+
+                <div class="profile-stats">
+                    <span><strong><%= profile.stats.total %></strong> total</span>
+                    <span><strong><%= profile.stats.posts %></strong> posts</span>
+                    <span><strong><%= profile.stats.replies %></strong> replies</span>
+                    <span><strong><%= profile.stats.media %></strong> with media</span>
+                </div>
+            </section>
+
+            <nav class="profile-tabs">
+                <a class="<%= profile.mode === 'all' ? 'active' : '' %>" href="/posts/<%= profile.author_path %>">all activity</a>
+                <a class="<%= profile.mode === 'posts' ? 'active' : '' %>" href="/posts/<%= profile.author_path %>/posts">posts</a>
+                <a class="<%= profile.mode === 'replies' ? 'active' : '' %>" href="/posts/<%= profile.author_path %>/replies">replies</a>
+                <a class="<%= profile.mode === 'media' ? 'active' : '' %>" href="/posts/<%= profile.author_path %>/media">media only</a>
+            </nav>
+
+            <div class="posts-list">
+                <% for (let i=0; i<posts.length; i++) { %>
+                    <% let post = posts[i] %>
+        
+                    <div class="indexed-post">
+                        <span><%= posts.length - i %></span>
+                        <a class="title" href="/posts/<%= post.path %>">
+                            <%= post.title %>
+                        </a>
+                        <span class="date"><%= post.timestamp %></span>
+                    </div>
+                <% } %>
+            </div>
+
+            <% if (posts.length == 0) { %>
+                <p><i>nothing to show in this tab yet.</i></p>
+            <% } %>
+        </main>
+    </div>
+    
+</body>
+
+<script src="/js/index.js"></script>
+<script>
+    let scope = document.querySelector(".profile-page");
+    if (scope) treat_index(scope);
+</script>
+
+</html>

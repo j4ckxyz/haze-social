@@ -9,6 +9,7 @@ const marked = require("marked");
 const sqlite = require("./js/sqlite.js");
 const push = require("./js/push.js");
 const auth = require("./js/auth.js");
+const webhooks = require("./js/webhooks.js");
 const fs = require("fs");
 const upload = require("./js/upload.js");
 
@@ -27,7 +28,7 @@ const MAX_TITLE_LENGTH = 40;
 app.use(compression());
 app.use("/", express.static(path.join(__dirname, "public")));
 // use form data
-app.use(express.json({ limit: "1gb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // ejs
@@ -53,6 +54,14 @@ function requireContentAuth(req, res, next) {
       return res.redirect("/landing");
     }
 
+    return res.status(401).send({ message: "authentication required" });
+  }
+
+  next();
+}
+
+function requireApiAuth(req, res, next) {
+  if (!req.user) {
     return res.status(401).send({ message: "authentication required" });
   }
 
@@ -87,27 +96,27 @@ app.get("/posts", requireContentAuth, (req, res) => {
 });
 
 app.get("/posts/:author", requireContentAuth, (req, res) => {
-  var feed = [];
-  for (let post of get_live_posts()) {
-    if (post.author_path == req.params.author) {
-      feed.push(parse_post_minimal(post));
-    }
-  }
-
-  res.render("index", {
-    title: `posts by <em>${req.params.author}</em>`,
-    posts: feed,
-  });
+  return render_author_profile(req, res, "all");
 });
 
-app.get("/posts/:author/:id", requireContentAuth, (req, res) => {
+app.get("/posts/:author/posts", requireContentAuth, (req, res) => {
+  return render_author_profile(req, res, "posts");
+});
+
+app.get("/posts/:author/replies", requireContentAuth, (req, res) => {
+  return render_author_profile(req, res, "replies");
+});
+
+app.get("/posts/:author/media", requireContentAuth, (req, res) => {
+  return render_author_profile(req, res, "media");
+});
+
+app.get("/posts/:author/:id", (req, res) => {
   const path = req.params.author + "/" + req.params.id;
   const post = sqlite.query("posts", { path: path });
 
-  if (post) {
-    res.render("post", parse_post_with_replies(post));
-  } else {
-    res.render("post", {
+  if (!post || (post.live !== 1 && (!req.user || req.user.username !== post.author))) {
+    return res.status(404).render("post", {
       title: "?",
       timestamp: -1,
       author: req.params.author,
@@ -120,6 +129,20 @@ app.get("/posts/:author/:id", requireContentAuth, (req, res) => {
       replying_to: null,
     });
   }
+
+  const parsed = parse_post_with_replies(post);
+  const absoluteUrl = get_absolute_request_url(req, `/posts/${path}`);
+  const excerpt = get_post_embed_text(post.body);
+
+  res.render("post", {
+    ...parsed,
+    meta: {
+      title: `${parsed.author} · ${parsed.title || "post"} · haze`,
+      description: excerpt,
+      url: absoluteUrl,
+      type: "article",
+    },
+  });
 });
 
 app.get("/new", auth.requireAuth, (req, res) => {
@@ -247,11 +270,11 @@ app.post("/delete/:author/:id", auth.requireAuth, (req, res) => {
   res.redirect("/");
 });
 
-app.get("/history/:author/:id", requireContentAuth, (req, res) => {
+app.get("/history/:author/:id", (req, res) => {
   const path = req.params.author + "/" + req.params.id;
   const post = sqlite.query("posts", { path: path });
 
-  if (!post) {
+  if (!post || (post.live !== 1 && (!req.user || req.user.username !== post.author))) {
     return res.redirect("/posts/" + path);
   }
 
@@ -415,6 +438,286 @@ app.post(
   },
 );
 
+app.get("/settings", auth.requireAuth, (req, res) => {
+  const apiKeys = auth.listApiKeys(req.user.user_id);
+  const hooks = webhooks.listWebhooks(req.user.user_id);
+  const userRow = sqlite.query("users", { user_id: req.user.user_id });
+
+  res.render("settings", {
+    apiKeys,
+    hooks,
+    accountCreatedAt: userRow ? userRow.created_at : null,
+    profileBgColor: normalize_hex_color(userRow && userRow.profile_bg_color) || "#ffffff",
+    newApiKey: req.query.new_api_key || null,
+    created: req.query.created || null,
+    error: req.query.error || null,
+  });
+});
+
+app.post("/settings/profile", auth.requireAuth, upload.none, (req, res) => {
+  const color = normalize_hex_color(req.body.profile_bg_color);
+  if (!color) {
+    return res.redirect(`/settings?error=${encodeURIComponent("profile color must be a full hex value like #80a2ff")}`);
+  }
+
+  sqlite.update("users", { user_id: req.user.user_id }, { profile_bg_color: color });
+  return res.redirect("/settings?created=profile_updated");
+});
+
+app.post("/settings/api-keys/create", auth.requireAuth, upload.none, (req, res) => {
+  try {
+    const label = String(req.body.label || "default").trim() || "default";
+    const key = auth.createApiKey(req.user.user_id, label);
+    return res.redirect(`/settings?created=api_key&new_api_key=${encodeURIComponent(key)}`);
+  } catch (err) {
+    return res.redirect(`/settings?error=${encodeURIComponent("failed to create API key")}`);
+  }
+});
+
+app.post("/settings/api-keys/:keyId/revoke", auth.requireAuth, (req, res) => {
+  auth.revokeApiKey(req.user.user_id, req.params.keyId);
+  return res.redirect("/settings?created=revoked");
+});
+
+app.post("/settings/webhooks/create", auth.requireAuth, upload.none, (req, res) => {
+  const result = webhooks.createWebhook(req.user.user_id, req.body.url);
+  if (result.error) {
+    return res.redirect(`/settings?error=${encodeURIComponent(result.error)}`);
+  }
+
+  return res.redirect("/settings?created=webhook");
+});
+
+app.post("/settings/webhooks/:webhookId/delete", auth.requireAuth, (req, res) => {
+  webhooks.deleteWebhook(req.user.user_id, req.params.webhookId);
+  return res.redirect("/settings?created=webhook_removed");
+});
+
+app.post("/settings/password", auth.requireAuth, upload.none, (req, res) => {
+  const currentPassword = String(req.body.current_password || "");
+  const newPassword = String(req.body.new_password || "");
+  const confirmPassword = String(req.body.confirm_password || "");
+
+  if (newPassword !== confirmPassword) {
+    return res.redirect(`/settings?error=${encodeURIComponent("new passwords do not match")}`);
+  }
+
+  const result = auth.changePassword(req.user.user_id, currentPassword, newPassword);
+  if (result.error) {
+    return res.redirect(`/settings?error=${encodeURIComponent(result.error)}`);
+  }
+
+  return res.redirect("/settings?created=password_updated");
+});
+
+app.post("/settings/sessions/revoke-others", auth.requireAuth, (req, res) => {
+  const keepToken = req.cookies && req.cookies.session;
+  auth.destroyOtherSessions(req.user.user_id, keepToken);
+  return res.redirect("/settings?created=sessions_revoked");
+});
+
+app.get("/settings/export/posts.json", auth.requireAuth, (req, res) => {
+  const posts = sqlite.db
+    .prepare("SELECT * FROM posts WHERE author = ? ORDER BY timestamp DESC")
+    .all(req.user.username);
+
+  const postPaths = posts.map((p) => p.path);
+  const history =
+    postPaths.length > 0
+      ? sqlite.db
+          .prepare(
+            `SELECT * FROM post_history WHERE path IN (${postPaths
+              .map(() => "?")
+              .join(",")}) ORDER BY history_id DESC`,
+          )
+          .all(...postPaths)
+      : [];
+
+  const payload = {
+    exported_at: Date.now(),
+    user: {
+      user_id: req.user.user_id,
+      username: req.user.username,
+    },
+    posts,
+    post_history: history,
+  };
+
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="haze-${req.user.username}-posts-export.json"`,
+  );
+  res.send(JSON.stringify(payload, null, 2));
+});
+
+app.get("/api/me", requireApiAuth, (req, res) => {
+  res.send({
+    user: {
+      user_id: req.user.user_id,
+      username: req.user.username,
+      is_admin: req.user.is_admin,
+      auth_type: req.user.auth_type,
+    },
+  });
+});
+
+app.get("/api/feed", requireApiAuth, (req, res) => {
+  const page = Math.max(1, Number(req.query.page || 1));
+  res.send({
+    page,
+    max_page: get_max_page(),
+    posts: get_feed(page - 1),
+  });
+});
+
+app.get("/api/posts", requireApiAuth, (req, res) => {
+  const author = String(req.query.author || "").trim().toLowerCase();
+  const posts = get_live_posts()
+    .filter((post) => !author || post.author === author || post.author_path === author)
+    .map((post) => parse_post(post));
+
+  res.send({ posts });
+});
+
+app.get("/api/posts/:author/:id", requireApiAuth, (req, res) => {
+  const path = req.params.author + "/" + req.params.id;
+  const post = sqlite.query("posts", { path });
+  if (!post || post.live !== 1) {
+    return res.status(404).send({ message: "post not found" });
+  }
+
+  return res.send({ post: parse_post_with_replies(post) });
+});
+
+app.post("/api/posts", requireApiAuth, upload.none, (req, res) => {
+  const body = String(req.body.body || "").trim();
+  const replying_to = String(req.body.replying_to || "").trim() || null;
+
+  if (!body) {
+    return res.status(400).send({ message: "body is required" });
+  }
+
+  let path = get_author_path(req.user.username) + "/" + nanoid(8);
+  let i = 0;
+  while (sqlite.query("posts", { path })) {
+    path = get_author_path(req.user.username) + "/" + nanoid(8);
+    i++;
+    if (i > 1000) {
+      return res.status(429).send({ message: "post limit reached" });
+    }
+  }
+
+  const post = {
+    author: req.user.username,
+    author_path: get_author_path(req.user.username),
+    body,
+    path,
+    replying_to,
+    live: 1,
+    timestamp: create_timestamp(),
+  };
+
+  sqlite.insert("posts", post);
+  sqlite.update("posts", { path: post.path }, { live: 1, timestamp: post.timestamp });
+
+  webhooks.broadcastPostCreated(
+    {
+      path: post.path,
+      author: post.author,
+      author_path: post.author_path,
+      title: get_post_title(post),
+      text: get_post_embed_text(post.body),
+      timestamp: post.timestamp,
+      replying_to: post.replying_to,
+    },
+    get_base_url(req),
+  );
+
+  res.status(201).send({
+    message: "post created",
+    path: post.path,
+    post: parse_post(post),
+  });
+});
+
+app.put("/api/posts/:author/:id", requireApiAuth, upload.none, (req, res) => {
+  const path = req.params.author + "/" + req.params.id;
+  const existingPost = sqlite.query("posts", { path });
+  if (!existingPost || existingPost.author !== req.user.username) {
+    return res.status(403).send({ message: "forbidden" });
+  }
+
+  const body = String(req.body.body || "").trim();
+  if (!body) return res.status(400).send({ message: "body is required" });
+
+  sqlite.insert("post_history", {
+    path,
+    body: existingPost.body,
+    timestamp: existingPost.timestamp,
+  });
+
+  sqlite.update("posts", { path }, { body, edited: 1 });
+  return res.send({ message: "post edited", post: parse_post(sqlite.query("posts", { path })) });
+});
+
+app.delete("/api/posts/:author/:id", requireApiAuth, (req, res) => {
+  const path = req.params.author + "/" + req.params.id;
+  const post = sqlite.query("posts", { path });
+
+  if (!post || post.author !== req.user.username) {
+    return res.status(403).send({ message: "forbidden" });
+  }
+
+  sqlite.delete("posts", { path });
+  sqlite.delete("post_history", { path });
+
+  return res.send({ message: "post deleted" });
+});
+
+function render_author_profile(req, res, mode) {
+  const authorPath = req.params.author;
+  const postsByAuthor = get_live_posts().filter((post) => post.author_path === authorPath);
+
+  if (postsByAuthor.length === 0) {
+    return res.status(404).render("index", {
+      title: `posts by <em>${authorPath}</em>`,
+      posts: [],
+    });
+  }
+
+  const profileUser = get_user_by_author_path(authorPath) || { username: postsByAuthor[0].author, created_at: null, profile_bg_color: null };
+  const profileColor = normalize_hex_color(profileUser.profile_bg_color);
+
+  const stats = {
+    total: postsByAuthor.length,
+    posts: postsByAuthor.filter((post) => !post.replying_to).length,
+    replies: postsByAuthor.filter((post) => !!post.replying_to).length,
+    media: postsByAuthor.filter((post) => has_media_markdown(post.body)).length,
+  };
+
+  let filtered = postsByAuthor;
+  if (mode === "posts") {
+    filtered = postsByAuthor.filter((post) => !post.replying_to);
+  } else if (mode === "replies") {
+    filtered = postsByAuthor.filter((post) => !!post.replying_to);
+  } else if (mode === "media") {
+    filtered = postsByAuthor.filter((post) => has_media_markdown(post.body));
+  }
+
+  res.render("profile", {
+    profile: {
+      username: profileUser.username,
+      author_path: authorPath,
+      created_at: profileUser.created_at,
+      bg_color: profileColor,
+      stats,
+      mode,
+    },
+    posts: filtered.map((post) => parse_post_minimal(post)),
+  });
+}
+
 function get_max_page() {
   let stmt = sqlite.db.prepare(
     "SELECT COUNT(*) AS count FROM posts WHERE live = 1",
@@ -575,6 +878,19 @@ app.post(
           req.body.endpoint,
         );
       }
+
+      await webhooks.broadcastPostCreated(
+        {
+          path: post.path,
+          author: post.author,
+          author_path: post.author_path,
+          title: get_post_title(post),
+          text: get_post_embed_text(post.body),
+          timestamp: create_timestamp(),
+          replying_to: post.replying_to,
+        },
+        get_base_url(req),
+      );
     } catch {
       console.error("error uploading files.");
       sqlite.update("posts", { path: post.path }, { live: 0 });
@@ -814,6 +1130,51 @@ function get_post_title(post) {
 
 function get_body_preview(body) {
   return parse_markdown(body.split("\r\n---\r\n")[0]);
+}
+
+function get_post_embed_text(body) {
+  const collapsed = String(body || "")
+    .replace(/!\[(album|image|audio|video)\]\([^)]*\)/gi, "")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/[\*_`>#~-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return collapsed.length > 220
+    ? collapsed.slice(0, 217).trim() + "..."
+    : collapsed || "private post on haze";
+}
+
+function has_media_markdown(body) {
+  return /!\[(album|image|audio|video)\]\(/i.test(String(body || ""));
+}
+
+function normalize_hex_color(value) {
+  const str = String(value || "").trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(str)) return null;
+  return str.toLowerCase();
+}
+
+function get_user_by_author_path(authorPath) {
+  const users = sqlite.db.prepare("SELECT username, created_at, profile_bg_color FROM users ORDER BY user_id ASC").all();
+  for (let user of users) {
+    if (get_author_path(user.username) === authorPath) return user;
+  }
+  return null;
+}
+
+function get_base_url(req) {
+  if (process.env.PUBLIC_BASE_URL) {
+    return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
+  }
+
+  const host = req.get("host");
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  return `${protocol}://${host}`;
+}
+
+function get_absolute_request_url(req, pathname) {
+  return `${get_base_url(req)}${pathname}`;
 }
 
 function create_timestamp() {

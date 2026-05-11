@@ -1,6 +1,14 @@
 :root {
-    --line-height: 1.4rem;
-    --max-post-width: 30rem;
+    --line-height: 1.45rem;
+    --max-post-width: 32rem;
+
+    --space-2xs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
 
     --dark-mode-color: #e8e8e8;
     --dark-mode-bg: #1b1b1c;
@@ -32,7 +40,6 @@ body {
     flex-direction: column;
     height: 100vh;
     height: 100svh;
-    touch-action: none;
 }
 
 .scroll-container {
@@ -102,6 +109,15 @@ a:active {
     background: var(--theme-color);
     color: var(--bg);
     text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--theme-color);
+    outline-offset: 2px;
 }
 
 em {
@@ -178,12 +194,12 @@ input[type="range"]:disabled {
 /* layout */
 
 main {
-    padding: 0.75em 0.75em;
+    padding: clamp(var(--space-sm), 1.8vw, var(--space-md));
     display: flex;
     flex-direction: column;
-    gap: 0.75em;
-    width: min(100%, calc(var(--max-post-width) + 1.5em));
-    max-width: calc(var(--max-post-width) + 1.5em);
+    gap: var(--space-lg);
+    width: min(100%, calc(var(--max-post-width) + var(--space-lg)));
+    max-width: calc(var(--max-post-width) + var(--space-lg));
     margin: 0 auto;
     box-sizing: border-box;
     align-items: stretch;
@@ -193,10 +209,9 @@ main {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 0.25em;
+    gap: var(--space-sm);
     font-family: monospace;
     width: 100%;
-    box-sizing: border-box;
 }
 
 /*  */
@@ -204,7 +219,7 @@ main {
 header,
 footer,
 nav {
-    padding: 0.5em 0.75em;
+    padding: var(--space-sm) var(--space-md);
 }
 
 header {
@@ -212,7 +227,7 @@ header {
     border-bottom: 1px dotted var(--theme-color);
 
     display: flex;
-    gap: 0.5em 2em;
+    gap: var(--space-xs) var(--space-lg);
     flex-wrap: wrap;
     align-items: center;
 }
@@ -224,12 +239,19 @@ header > .grow {
     text-align: left;
 }
 
-.index-button::after {
-    content: "ndex";
+.header-actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
 }
-.new-post-button::after {
-    content: " new post";
+
+.header-logout-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
 }
+
 
 footer {
     background: var(--post-bg);
@@ -237,11 +259,11 @@ footer {
 
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: var(--space-md);
 }
 nav {
     display: flex;
-    gap: 2em;
+    gap: var(--space-lg);
     padding: 0;
 }
 nav pre {
@@ -249,6 +271,49 @@ nav pre {
 }
 nav a {
     font-family: monospace;
+}
+
+.pager {
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.pager-disabled {
+    opacity: 0.45;
+    font-family: monospace;
+}
+
+.header-actions a,
+.new-post-button {
+    min-height: 2.75rem;
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-actions a:hover,
+.header-actions a:active,
+.new-post-button:hover,
+.new-post-button:active {
+    border-color: var(--theme-color);
+}
+
+.pager a {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 footer > div {
     display: flex;

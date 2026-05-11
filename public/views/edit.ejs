@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <div style="display: none" id="replying_to">
+    <div class="hidden" id="replying_to">
         <% if (edit_post.replying_to) { %>
             <%= edit_post.replying_to.path %>
         <% } %>
@@ -93,9 +93,7 @@
                 </p>
                 
                 <p>
-                    <label>
-                        <a href="javascript:0;" onclick="preview_post()">preview post</a>
-                    </label>
+                    <button type="button" class="inline-button-link" onclick="preview_post()">preview post</button>
                 </p>
             </div>
     
@@ -202,7 +200,7 @@
 
     <dialog id="confirm-dialog">
         ready to post?<br>
-        posts can't be deleted or edited, so make sure everything looks good!<br>
+you can edit later, but make sure this looks right before posting.<br>
         <br>
         <button class="dialog-close-button" onclick="this.parentElement.close()">cancel</button>
         <button onclick="this.parentElement.close(); upload_post()">post!</button>

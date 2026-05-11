@@ -11,17 +11,17 @@
 
     <div class="scroll-container">
         <main>
-            <nav>
+            <nav class="pager" aria-label="feed pages">
                 <% if (page > 1) { %>
-                    <a href="/page/<%= Number(page) - 1%>"><···</a>
+                    <a href="/page/<%= Number(page) - 1%>" aria-label="go to previous page">previous</a>
                 <% } else { %>
-                    <pre>   </pre>
+                    <span class="pager-disabled">previous</span>
                 <% } %>
-                <small><%= page %></small>
+                <small>page <%= page %></small>
                 <% if (page < max_page) { %>
-                    <a href="/page/<%= Number(page) + 1 %>">···></a>
+                    <a href="/page/<%= Number(page) + 1 %>" aria-label="go to next page">next</a>
                 <% } else { %>
-                    <pre>   </pre>
+                    <span class="pager-disabled">next</span>
                 <% } %>
             </nav>
 
@@ -30,20 +30,22 @@
                     <table>
                         <tr>
                             <td>
-                                <a href="/posts/<%= post.path %>" title="go to post">--/></a>
+                                <a href="/posts/<%= post.path %>" class="post-open-link" title="open post">open</a>
                             </td>
-                            <td class="flex">
-                                <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" style="font-size: 0.8em; margin-left: 4px; text-decoration: none;">(edited)</a><% } %></span>
-                                <% if (locals.user && locals.user.username === post.author) { %>
-                                    <a href="/edit/<%= post.path %>" style="margin-right: 8px;">edit</a>
-                                    <form action="/delete/<%= post.path %>" method="POST" style="display:inline; margin-right: 8px;" onsubmit="return confirm('delete this post?')"><button type="submit" style="background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-decoration:underline;">delete</button></form>
-                                <% } %>
-                                <a href="/reply/<%= post.path %>">reply</a>
+                            <td class="flex post-line">
+                                <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" class="post-edited-link">(edited)</a><% } %></span>
+                                <span class="post-actions">
+                                    <% if (locals.user && locals.user.username === post.author) { %>
+                                        <a href="/edit/<%= post.path %>">edit</a>
+                                        <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                    <% } %>
+                                    <a href="/reply/<%= post.path %>">reply</a>
+                                </span>
                             </td>
                         </tr>
                         <% if (post.replying_to) { %>
                             <tr>
-                                <td>re:</td>
+                                <td>reply:</td>
                                 <td class="flex">
                                     <a class="grow" href="/posts/<%= post.replying_to.path %>">
                                         <%= post.replying_to.title %>
@@ -84,32 +86,32 @@
             <% } %>
     
             <% if (feed.length == 0) { %>
-                <p><i>there are zero posts on this website!</i></p>
+                <p><i>no posts yet — be the first to write one.</i></p>
             <% } %>
     
             <% if (page == max_page) { %>
-                <p><i>end of posts.</i></p>
+                <p><i>you've reached the end for now.</i></p>
             <% } %>
         </main>
 
         <footer>
-            <nav>
+            <nav class="pager" aria-label="feed pages bottom">
                 <% if (page > 1) { %>
-                    <a href="/page/<%= Number(page) - 1%>"><···</a>
+                    <a href="/page/<%= Number(page) - 1%>">previous</a>
                 <% } else { %>
-                    <pre>   </pre>
+                    <span class="pager-disabled">previous</span>
                 <% } %>
-                <%= page %>
+                <span>page <%= page %></span>
                 <% if (page < max_page) { %>
-                    <a href="/page/<%= Number(page) + 1 %>">···></a>
+                    <a href="/page/<%= Number(page) + 1 %>">next</a>
                 <% } else { %>
-                    <pre>   </pre>
+                    <span class="pager-disabled">next</span>
                 <% } %>
             </nav>
 
             <div class="flex">
-                <a id="subscription-anchor" class="hidden" tabindex="0">get notifications</a>
-                <a id="app-install-anchor" tabindex="0" href="/how-to-install">install on your phone</a>
+                <a id="subscription-anchor" class="hidden" tabindex="0">turn on notifications</a>
+                <a id="app-install-anchor" tabindex="0" href="/how-to-install">install app</a>
                 <span>v1.3</span>
             </div>
         </footer>
@@ -130,13 +132,14 @@
         e.preventDefault();
         install_prompt = e;
         install_button.textContent = "install app";
-        install_button.href = "javascript:0;";
+        install_button.href = "#";
         install_button.onclick = install_app;
     });
 
     window.addEventListener('appinstalled', disable_install_prompt);
 
-    async function install_app() {
+    async function install_app(event) {
+        if (event) event.preventDefault();
         if (!install_prompt) return false;
         await install_prompt.prompt();
         disable_install_prompt();
@@ -144,7 +147,7 @@
     }
 
     function disable_install_prompt() {
-        install_button.textContent = "install on your phone";
+        install_button.textContent = "install app";
         install_button.href = "/how-to-install";
         install_button.onclick = null;
         install_prompt = null;

@@ -217,3 +217,90 @@
     font-family: monospace;
     opacity: 0.75;
 }
+
+/* settings */
+
+.settings-panel {
+    border: 1px solid var(--post-border);
+    background: var(--post-bg);
+    padding: var(--space-md);
+    max-width: var(--max-post-width);
+}
+
+.settings-panel h2,
+.settings-panel h3 {
+    font-family: monospace;
+    font-weight: normal;
+    margin: 0 0 0.75em 0;
+}
+
+.settings-panel h3 {
+    margin-top: var(--space-lg);
+}
+
+.settings-note,
+.settings-meta,
+.settings-empty {
+    font-family: monospace;
+    opacity: 0.8;
+}
+
+.settings-form-inline {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.settings-form-inline input,
+.settings-form-inline select,
+.settings-stack input {
+    flex: 1;
+    min-width: 14em;
+    box-sizing: border-box;
+    border: 1px dotted var(--theme-color);
+    padding: 0.5em;
+    background: var(--bg);
+    color: var(--color);
+}
+
+.settings-form-inline input[type="color"] {
+    flex: 0 0 auto;
+    min-width: 3rem;
+    width: 3rem;
+    padding: 0.2em;
+}
+
+.settings-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    max-width: 22rem;
+}
+
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md);
+    border: 1px solid var(--post-border);
+    padding: var(--space-sm);
+    margin-top: var(--space-xs);
+}
+
+.settings-code {
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--bg);
+    border: 1px solid var(--post-border);
+    padding: var(--space-sm);
+    font-family: monospace;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+    .settings-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

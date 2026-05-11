@@ -4,11 +4,7 @@
     <%- include ('fragments/global-head.ejs') %>
     <title>haze</title>
     <link rel="stylesheet" href="/css/index.css">
-    <style>
-        main {
-            gap: .5em;
-        }
-    </style>
+
 </head>
 <body>
 
@@ -16,7 +12,7 @@
 
     <div class="scroll-container">
         <main>
-            <div><%- title %></div>
+            <div class="index-title"><%- title %></div>
             <div class="posts-list">
                 <% for (let i=0; i<posts.length; i++) { %>
                     <% let post = posts[i] %>
@@ -26,13 +22,13 @@
                         <a class="title" href="/posts/<%= post.path %>">
                             <%= post.title %>
                         </a>
-                        <a style="white-space: pre" href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a>
+                        <a class="indexed-author" href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a>
                         <span class="date"><%= post.timestamp %></span>
                     </div>
                 <% } %>
             </div>
             <% if (posts.length == 0) { %>
-                <p><i>zero posts to index!</i></p>
+                <p><i>there are no posts in this view yet.</i></p>
             <% } %>
         </main>
     </div>

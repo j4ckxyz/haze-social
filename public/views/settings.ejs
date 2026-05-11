@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/post.css">
+    <%- include ('fragments/global-head.ejs') %>
+    <link rel="stylesheet" href="/css/auth.css">
+    <title>settings · haze</title>
+</head>
+<body>
+
+    <%- include('fragments/header.ejs') %>
+
+    <div class="scroll-container">
+        <main>
+            <% if (locals.created) { %>
+                <div class="new-code">
+                    <strong>saved:</strong>
+                    <code><%= created %></code>
+                </div>
+            <% } %>
+
+            <% if (locals.error) { %>
+                <div class="auth-error"><%= error %></div>
+            <% } %>
+
+            <section class="settings-panel">
+                <h2>account</h2>
+                <div class="settings-row">
+                    <div>
+                        <strong>@<%= user.username %></strong>
+                        <div class="settings-meta">member since <% if (locals.accountCreatedAt) { %><span class="date-relative"><%= accountCreatedAt %></span><% } else { %>unknown<% } %></div>
+                    </div>
+                </div>
+
+                <h3>profile background color</h3>
+                <p class="settings-note">custom hex color for your profile header. example: #8cb7ff</p>
+                <form method="POST" action="/settings/profile" class="settings-form-inline">
+                    <input type="text" name="profile_bg_color" pattern="^#[0-9a-fA-F]{6}$" value="<%= profileBgColor %>" required>
+                    <input type="color" id="profile-color-picker" value="<%= profileBgColor %>" aria-label="profile color picker">
+                    <button type="submit">save color</button>
+                </form>
+            </section>
+
+            <section class="settings-panel">
+                <h2>appearance</h2>
+                <p class="settings-note">default is your OS theme. you can override it here.</p>
+                <form class="settings-form-inline" onsubmit="return false;">
+                    <label for="theme-select">theme</label>
+                    <select id="theme-select">
+                        <option value="system">system</option>
+                        <option value="light">light</option>
+                        <option value="dark">dark</option>
+                    </select>
+                </form>
+
+                <h3>desktop shortcuts</h3>
+                <p class="settings-note">use Alt + key: <code>H</code> home, <code>N</code> new post, <code>B</code> browse, <code>S</code> settings.</p>
+            </section>
+
+            <section class="settings-panel">
+                <h2>security</h2>
+
+                <h3>change password</h3>
+                <form method="POST" action="/settings/password" class="settings-stack">
+                    <input type="password" name="current_password" placeholder="current password" required autocomplete="current-password">
+                    <input type="password" name="new_password" placeholder="new password" required autocomplete="new-password">
+                    <input type="password" name="confirm_password" placeholder="confirm new password" required autocomplete="new-password">
+                    <button type="submit">update password</button>
+                </form>
+
+                <h3>sessions</h3>
+                <form method="POST" action="/settings/sessions/revoke-others" onsubmit="return confirm('log out your other devices?')">
+                    <button type="submit">log out other devices</button>
+                </form>
+            </section>
+
+            <section class="settings-panel">
+                <h2>developer settings</h2>
+                <p class="settings-note">use API keys for scripts and bots. keys are shown only once when created.</p>
+
+                <% if (locals.newApiKey) { %>
+                    <div class="new-code">
+                        <strong>new API key:</strong>
+                        <code><%= newApiKey %></code>
+                    </div>
+                <% } %>
+
+                <h3>create API key</h3>
+                <form method="POST" action="/settings/api-keys/create" class="settings-form-inline">
+                    <input type="text" name="label" maxlength="40" placeholder="label (for example: discord-bot)" required>
+                    <button type="submit">create key</button>
+                </form>
+
+                <h3>your API keys</h3>
+                <% if (apiKeys.length === 0) { %>
+                    <p class="settings-empty">no API keys yet.</p>
+                <% } %>
+
+                <% for (let key of apiKeys) { %>
+                    <div class="settings-row">
+                        <div>
+                            <strong><%= key.label %></strong>
+                            <div class="settings-meta"><%= key.key_prefix %>... · created <span class="date-relative"><%= key.created_at %></span><% if (key.last_used_at) { %> · last used <span class="date-relative"><%= key.last_used_at %></span><% } %></div>
+                        </div>
+
+                        <% if (!key.revoked) { %>
+                            <form method="POST" action="/settings/api-keys/<%= key.key_id %>/revoke" onsubmit="return confirm('revoke this API key?')">
+                                <button type="submit">revoke</button>
+                            </form>
+                        <% } else { %>
+                            <span class="settings-meta">revoked</span>
+                        <% } %>
+                    </div>
+                <% } %>
+            </section>
+
+            <section class="settings-panel">
+                <h2>webhooks</h2>
+                <p class="settings-note">get a POST request when a new post is published. ideal for discord relay bots.</p>
+
+                <form method="POST" action="/settings/webhooks/create" class="settings-form-inline">
+                    <input type="url" name="url" placeholder="https://your-bot-endpoint.example/webhook" required>
+                    <button type="submit">add webhook</button>
+                </form>
+
+                <% if (hooks.length === 0) { %>
+                    <p class="settings-empty">no webhooks yet.</p>
+                <% } %>
+
+                <% for (let hook of hooks) { %>
+                    <div class="settings-row">
+                        <div>
+                            <strong><%= hook.url %></strong>
+                            <div class="settings-meta">created <span class="date-relative"><%= hook.created_at %></span><% if (hook.last_success_at) { %> · last success <span class="date-relative"><%= hook.last_success_at %></span><% } %></div>
+                            <% if (hook.last_error) { %>
+                                <div class="settings-meta">last error: <%= hook.last_error %></div>
+                            <% } %>
+                        </div>
+
+                        <% if (hook.enabled === 1) { %>
+                            <form method="POST" action="/settings/webhooks/<%= hook.webhook_id %>/delete" onsubmit="return confirm('disable this webhook?')">
+                                <button type="submit">disable</button>
+                            </form>
+                        <% } else { %>
+                            <span class="settings-meta">disabled</span>
+                        <% } %>
+                    </div>
+                <% } %>
+            </section>
+
+            <section class="settings-panel">
+                <h2>data</h2>
+                <p class="settings-note">download your posts and edit history as json.</p>
+                <a href="/settings/export/posts.json">download my posts export</a>
+            </section>
+
+            <section class="settings-panel">
+                <h2>API quick commands</h2>
+                <pre class="settings-code">curl -H "Authorization: Bearer YOUR_KEY" <%= process.env.PUBLIC_BASE_URL || "http://localhost:" + (process.env.PORT || 8080) %>/api/me
+curl -H "Authorization: Bearer YOUR_KEY" <%= process.env.PUBLIC_BASE_URL || "http://localhost:" + (process.env.PORT || 8080) %>/api/feed?page=1
+curl -X POST -H "Authorization: Bearer YOUR_KEY" -H "Content-Type: application/json" \
+  -d '{"body":"hello from API"}' <%= process.env.PUBLIC_BASE_URL || "http://localhost:" + (process.env.PORT || 8080) %>/api/posts</pre>
+            </section>
+        </main>
+    </div>
+
+</body>
+<script src="/js/post.js"></script>
+<script>
+    treat_posts();
+
+    const themeSelect = document.getElementById('theme-select');
+    const current = localStorage.getItem('haze-theme') || 'system';
+    themeSelect.value = current;
+
+    themeSelect.addEventListener('change', () => {
+        const value = themeSelect.value;
+        localStorage.setItem('haze-theme', value);
+
+        if (value === 'system') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', value);
+        }
+
+        window.dispatchEvent(new Event('haze-theme-changed'));
+    });
+
+    const profileHexInput = document.querySelector('input[name="profile_bg_color"]');
+    const profileColorPicker = document.getElementById('profile-color-picker');
+    if (profileHexInput && profileColorPicker) {
+        profileColorPicker.addEventListener('input', () => {
+            profileHexInput.value = profileColorPicker.value;
+        });
+
+        profileHexInput.addEventListener('input', () => {
+            if (/^#[0-9a-fA-F]{6}$/.test(profileHexInput.value)) {
+                profileColorPicker.value = profileHexInput.value;
+            }
+        });
+    }
+</script>
+</html>

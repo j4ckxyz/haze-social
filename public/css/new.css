@@ -144,8 +144,8 @@ input[type="file"] {
     max-height: 100%;
 }
 .block .options button {
-    height: 1.5em;
-    width: 1.5em;
+    height: 2rem;
+    width: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -293,6 +293,18 @@ textarea {
     }
     #post-builder {
         max-width: calc(100% - 1em);
+    }
+
+    .block .options {
+        position: static;
+        transform: none;
+        flex-direction: row;
+        margin-top: 0.35rem;
+    }
+
+    .block .options button {
+        width: 2.75rem;
+        height: 2.75rem;
     }
 }
 

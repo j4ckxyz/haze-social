@@ -23,22 +23,24 @@
                     <table>
                         <tr>
                             <td>
-                                <a tabindex="0" onclick="history.back()">
-                                    &lt;\--
+                                <a href="#" class="post-open-link" onclick="history.back(); return false;" aria-label="go back">
+                                    back
                                 </a>
                             </td>
-                            <td class="flex">
-                                <span class="grow">from <a href="/posts/<%= author_path %>"><em><%= author %></em></a> · <span class="date-relative"><%= timestamp %></span><% if (locals.edited) { %> <a href="/history/<%= path %>" style="font-size: 0.8em; margin-left: 4px; text-decoration: none;">(edited)</a><% } %></span>
-                                <% if (locals.user && locals.user.username === author) { %>
-                                    <a href="/edit/<%= path %>" style="margin-right: 8px;">edit</a>
-                                    <form action="/delete/<%= path %>" method="POST" style="display:inline; margin-right: 8px;" onsubmit="return confirm('delete this post?')"><button type="submit" style="background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-decoration:underline;">delete</button></form>
-                                <% } %>
-                                <a href="/reply/<%= path %>">reply</a>
+                            <td class="flex post-line">
+                                <span class="grow">from <a href="/posts/<%= author_path %>"><em><%= author %></em></a> · <span class="date-relative"><%= timestamp %></span><% if (locals.edited) { %> <a href="/history/<%= path %>" class="post-edited-link">(edited)</a><% } %></span>
+                                <span class="post-actions">
+                                    <% if (locals.user && locals.user.username === author) { %>
+                                        <a href="/edit/<%= path %>">edit</a>
+                                        <form action="/delete/<%= path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                    <% } %>
+                                    <a href="/reply/<%= path %>">reply</a>
+                                </span>
                             </td>
                         </tr>
                         <% if (locals.replying_to) { %>
                             <tr>
-                                <td>re:</td>
+                                <td>reply:</td>
                                 <td class="flex">
                                     <a class="grow" href="/posts/<%= replying_to.path %>"><%= replying_to.title %></a>
                                     <span>by <a href="/posts/<%= replying_to.author_path %>"><%= replying_to.author %></a></span>
@@ -54,22 +56,24 @@
                 </div>
 
                 <% if (locals.replies && replies.length > 0) { %>
-                    <div><p style="font-family: monospace">replies:</p></div>
+                    <div><p class="section-label">replies</p></div>
                     <% for (let i=0; i<replies.length; i++) { %>
                         <% let post = replies[i] %>
                         <div class="post">
                             <table>
                                 <tr>
                                     <td>
-                                        <a href="/posts/<%= post.path %>" title="go to post">--/></a>
+                                        <a href="/posts/<%= post.path %>" class="post-open-link" title="open reply">open</a>
                                     </td>
-                                    <td class="flex">
-                                        <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" style="font-size: 0.8em; margin-left: 4px; text-decoration: none;">(edited)</a><% } %></span>
-                                        <% if (locals.user && locals.user.username === post.author) { %>
-                                            <a href="/edit/<%= post.path %>" style="margin-right: 8px;">edit</a>
-                                            <form action="/delete/<%= post.path %>" method="POST" style="display:inline; margin-right: 8px;" onsubmit="return confirm('delete this post?')"><button type="submit" style="background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-decoration:underline;">delete</button></form>
-                                        <% } %>
-                                        <a href="/reply/<%= post.path %>">reply</a>
+                                    <td class="flex post-line">
+                                        <span class="grow">from <a href="/posts/<%= post.author_path %>"><em><%= post.author %></em></a> · <span class="date-relative"><%= post.timestamp %></span><% if (post.edited) { %> <a href="/history/<%= post.path %>" class="post-edited-link">(edited)</a><% } %></span>
+                                        <span class="post-actions">
+                                            <% if (locals.user && locals.user.username === post.author) { %>
+                                                <a href="/edit/<%= post.path %>">edit</a>
+                                                <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                            <% } %>
+                                            <a href="/reply/<%= post.path %>">reply</a>
+                                        </span>
                                     </td>
                                 </tr>
                             </table>
@@ -101,11 +105,9 @@
                     <% } %>
                 <% } %>
             <% } else { %>
-                <p>this post does not exist!</p>
+                <p>this post does not exist or is no longer available.</p>
                 <p>
-                    <a tabindex="0" onclick="history.back()">
-                        &lt;\--
-                    </a>
+                    <a href="#" onclick="history.back(); return false;">go back</a>
                 </p>
             <% } %>
         </main>

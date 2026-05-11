@@ -66,6 +66,7 @@ if (fs.existsSync('db/db.db')) {
             "password_hash"	TEXT,
             "is_admin"	INTEGER DEFAULT 0,
             "created_at"	INTEGER,
+            "profile_bg_color" TEXT,
             PRIMARY KEY("user_id")
         );
         CREATE TABLE "invite_codes" (
@@ -85,6 +86,28 @@ if (fs.existsSync('db/db.db')) {
             "expires_at"	INTEGER,
             PRIMARY KEY("session_id")
         );
+        CREATE TABLE "api_keys" (
+            "key_id" INTEGER,
+            "user_id" INTEGER,
+            "token_hash" TEXT UNIQUE,
+            "key_prefix" TEXT,
+            "label" TEXT,
+            "created_at" INTEGER,
+            "last_used_at" INTEGER,
+            "revoked_at" INTEGER,
+            PRIMARY KEY("key_id")
+        );
+        CREATE TABLE "webhooks" (
+            "webhook_id" INTEGER,
+            "user_id" INTEGER,
+            "url" TEXT,
+            "secret" TEXT,
+            "enabled" INTEGER DEFAULT 1,
+            "created_at" INTEGER,
+            "last_success_at" INTEGER,
+            "last_error" TEXT,
+            PRIMARY KEY("webhook_id")
+        );
     `);
 }
 
@@ -101,6 +124,7 @@ if (!tableExists('users')) {
             "password_hash"	TEXT,
             "is_admin"	INTEGER DEFAULT 0,
             "created_at"	INTEGER,
+            "profile_bg_color" TEXT,
             PRIMARY KEY("user_id")
         );
     `);
@@ -130,6 +154,17 @@ try {
     console.error("Migration error adding edited column:", e);
 }
 
+// Check if users table has profile_bg_color column (migration)
+try {
+    const usersTableInfo = db.pragma("table_info(users)");
+    const hasProfileBgColor = usersTableInfo.some(column => column.name === 'profile_bg_color');
+    if (!hasProfileBgColor) {
+        db.exec(`ALTER TABLE "users" ADD COLUMN "profile_bg_color" TEXT;`);
+    }
+} catch (e) {
+    console.error("Migration error adding profile_bg_color column:", e);
+}
+
 if (!tableExists('post_history')) {
     db.exec(`
         CREATE TABLE "post_history" (
@@ -150,6 +185,36 @@ if (!tableExists('sessions')) {
             "created_at"	INTEGER,
             "expires_at"	INTEGER,
             PRIMARY KEY("session_id")
+        );
+    `);
+}
+if (!tableExists('api_keys')) {
+    db.exec(`
+        CREATE TABLE "api_keys" (
+            "key_id" INTEGER,
+            "user_id" INTEGER,
+            "token_hash" TEXT UNIQUE,
+            "key_prefix" TEXT,
+            "label" TEXT,
+            "created_at" INTEGER,
+            "last_used_at" INTEGER,
+            "revoked_at" INTEGER,
+            PRIMARY KEY("key_id")
+        );
+    `);
+}
+if (!tableExists('webhooks')) {
+    db.exec(`
+        CREATE TABLE "webhooks" (
+            "webhook_id" INTEGER,
+            "user_id" INTEGER,
+            "url" TEXT,
+            "secret" TEXT,
+            "enabled" INTEGER DEFAULT 1,
+            "created_at" INTEGER,
+            "last_success_at" INTEGER,
+            "last_error" TEXT,
+            PRIMARY KEY("webhook_id")
         );
     `);
 }

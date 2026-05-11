@@ -14,6 +14,7 @@
         <main>
             <div class="auth-form">
                 <h2>log in</h2>
+                <p class="auth-hint">welcome back — use the username and password you signed up with.</p>
 
                 <% if (locals.error) { %>
                     <div class="auth-error"><%= error %></div>
@@ -28,6 +29,7 @@
 
                     <label for="login-password">password</label><br>
                     <input type="password" id="login-password" name="password" placeholder="password" required autocomplete="current-password">
+                    <div class="auth-hint"><small>if you forgot your password, ask your instance admin for help.</small></div>
 
                     <br><br>
 
