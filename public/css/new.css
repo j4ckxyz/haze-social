@@ -1,13 +1,17 @@
-main {
+/* scoped to post builder page only */
+.new-post-page main {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 5em;
+    gap: clamp(2rem, 5vw, 5rem);
 }
-main > div:first-child {
+.new-post-page main > div:first-child {
     padding-bottom: 50vh;
 }
-main:has(.post) > div:first-child {
+.new-post-page main > div:first-child {
+    flex: 1 1 0;
+}
+.new-post-page main:has(.replying-to) > div:first-child {
     max-width: 50%;
 }
 
@@ -124,13 +128,17 @@ input[type="file"] {
     align-items: center;
 }
 .post-button {
-    color: var(--theme-color);
+    background: var(--theme-color);
+    color: var(--bg);
     border-color: var(--theme-color);
+    text-decoration: none;
+    font-weight: bold;
+    padding: 0.5em 1.25em;
 }
 .post-button:hover,
 .post-button:active {
-    background: var(--theme-color);
-    color: var(--bg);
+    background: var(--bg);
+    color: var(--theme-color);
 }
 
 .block .options {
@@ -279,16 +287,14 @@ textarea {
 }
 
 @media only screen and (max-width: 767px) {
-    main {
+    .new-post-page main {
         flex-direction: column;
     }
-    main > div:first-child {
+    .new-post-page main > div:first-child {
         padding-bottom: 0;
-    }
-    main:has(.post) > div:first-child {
         max-width: unset;
     }
-    .post {
+    .new-post-page .post {
         max-width: unset;
     }
     #post-builder {

@@ -86,11 +86,11 @@
             <% } %>
     
             <% if (feed.length == 0) { %>
-                <p><i>no posts yet — be the first to write one.</i></p>
+                <p class="empty-state"><i>no posts yet — <a href="/new">be the first to write one</a>.</i></p>
             <% } %>
     
-            <% if (page == max_page) { %>
-                <p><i>you've reached the end for now.</i></p>
+            <% if (page == max_page && feed.length > 0) { %>
+                <p class="empty-state"><i>you've reached the end for now.</i></p>
             <% } %>
         </main>
 

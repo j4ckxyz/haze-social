@@ -1,7 +1,48 @@
+/* settings nav */
+
+.settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    border-bottom: 1px dotted var(--theme-color);
+    padding: var(--space-sm) 0;
+    margin: calc(-1 * var(--space-sm)) calc(-1 * var(--space-md)) var(--space-lg);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+    display: flex;
+    gap: var(--space-xs) var(--space-md);
+    flex-wrap: wrap;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+.settings-nav a {
+    text-decoration: none;
+    padding: var(--space-2xs) var(--space-xs);
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
+}
+.settings-nav a:hover,
+.settings-nav a:active {
+    border-color: var(--theme-color);
+}
+
 /* auth pages */
 
 .auth-form {
     max-width: 20rem;
+}
+.auth-form form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
 }
 
 .auth-form h2 {
@@ -225,6 +266,9 @@
     background: var(--post-bg);
     padding: var(--space-md);
     max-width: var(--max-post-width);
+}
+.settings-panel + .settings-panel {
+    margin-top: var(--space-xl);
 }
 
 .settings-panel h2,

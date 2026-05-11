@@ -21,19 +21,21 @@
                 <% } %>
 
                 <form method="POST" action="/login">
-                    <label for="login-username">username</label><br>
-                    <input autofocus type="text" id="login-username" name="username" placeholder="your name" required
-                        value="<%= locals.username || '' %>" autocomplete="username" autocapitalize="off">
+                    <div class="form-field">
+                        <label for="login-username">username</label>
+                        <input autofocus type="text" id="login-username" name="username" placeholder="your name" required
+                            value="<%= locals.username || '' %>" autocomplete="username" autocapitalize="off">
+                    </div>
 
-                    <br><br>
+                    <div class="form-field">
+                        <label for="login-password">password</label>
+                        <input type="password" id="login-password" name="password" placeholder="password" required autocomplete="current-password">
+                        <div class="auth-hint"><small>if you forgot your password, ask your instance admin for help.</small></div>
+                    </div>
 
-                    <label for="login-password">password</label><br>
-                    <input type="password" id="login-password" name="password" placeholder="password" required autocomplete="current-password">
-                    <div class="auth-hint"><small>if you forgot your password, ask your instance admin for help.</small></div>
-
-                    <br><br>
-
-                    <button type="submit">log in</button>
+                    <div class="form-field">
+                        <button type="submit">log in</button>
+                    </div>
                 </form>
 
                 <p class="auth-switch">

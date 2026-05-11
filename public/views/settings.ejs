@@ -12,6 +12,14 @@
 
     <div class="scroll-container">
         <main>
+            <nav class="settings-nav" aria-label="settings sections">
+                <a href="#account">account</a>
+                <a href="#appearance">appearance</a>
+                <a href="#security">security</a>
+                <a href="#developer">developer</a>
+                <a href="#data">data</a>
+            </nav>
+
             <% if (locals.created) { %>
                 <div class="new-code">
                     <strong>saved:</strong>
@@ -23,7 +31,7 @@
                 <div class="auth-error"><%= error %></div>
             <% } %>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="account">
                 <h2>account</h2>
                 <div class="settings-row">
                     <div>
@@ -41,7 +49,7 @@
                 </form>
             </section>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="appearance">
                 <h2>appearance</h2>
                 <p class="settings-note">default is your OS theme. you can override it here.</p>
                 <form class="settings-form-inline" onsubmit="return false;">
@@ -57,7 +65,7 @@
                 <p class="settings-note">use Alt + key: <code>H</code> home, <code>N</code> new post, <code>B</code> browse, <code>S</code> settings.</p>
             </section>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="security">
                 <h2>security</h2>
 
                 <h3>change password</h3>
@@ -74,7 +82,7 @@
                 </form>
             </section>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="developer">
                 <h2>developer settings</h2>
                 <p class="settings-note">use API keys for scripts and bots. keys are shown only once when created.</p>
 
@@ -114,7 +122,7 @@
                 <% } %>
             </section>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="webhooks">
                 <h2>webhooks</h2>
                 <p class="settings-note">get a POST request when a new post is published. ideal for discord relay bots.</p>
 
@@ -148,7 +156,7 @@
                 <% } %>
             </section>
 
-            <section class="settings-panel">
+            <section class="settings-panel" id="data">
                 <h2>data</h2>
                 <p class="settings-note">download your posts and edit history as json.</p>
                 <a href="/settings/export/posts.json">download my posts export</a>
