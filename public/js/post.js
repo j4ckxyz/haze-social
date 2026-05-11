@@ -13,6 +13,51 @@ function treat_posts() {
     for (content of document.querySelectorAll(".content")) {
         treat_post(content);
     }
+
+    // click anywhere on a post to open it
+    for (let post of document.querySelectorAll(".post[data-url]")) {
+        post.addEventListener("click", function(e) {
+            // don't navigate if clicking interactive elements
+            let target = e.target;
+            while (target && target !== this) {
+                if (
+                    target.tagName === "A" ||
+                    target.tagName === "BUTTON" ||
+                    target.tagName === "INPUT" ||
+                    target.tagName === "TEXTAREA" ||
+                    target.tagName === "SELECT" ||
+                    target.tagName === "DIALOG" ||
+                    target.tagName === "IMG" ||
+                    target.tagName === "VIDEO" ||
+                    target.tagName === "AUDIO" ||
+                    target.tagName === "FORM" ||
+                    target.closest("form") ||
+                    target.closest(".post-actions")
+                ) {
+                    return;
+                }
+                target = target.parentElement;
+            }
+            window.location.href = this.dataset.url;
+        });
+    }
+
+    // copy link buttons
+    for (let btn of document.querySelectorAll(".copy-link")) {
+        btn.addEventListener("click", async function(e) {
+            e.stopPropagation();
+            const url = window.location.origin + this.dataset.path;
+            try {
+                await navigator.clipboard.writeText(url);
+                const original = this.textContent;
+                this.textContent = "copied!";
+                setTimeout(() => { this.textContent = original; }, 1200);
+            } catch (err) {
+                this.textContent = "failed";
+                setTimeout(() => { this.textContent = "copy"; }, 1200);
+            }
+        });
+    }
 }
 
 function treat_post(content) {

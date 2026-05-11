@@ -26,7 +26,7 @@
             </nav>
 
             <% for (let post of feed) { %>
-                <div class="post">
+                <div class="post" data-url="/posts/<%= post.path %>">
                     <table>
                         <tr>
                             <td></td>
@@ -38,6 +38,7 @@
                                         <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
                                     <% } %>
                                     <a href="/reply/<%= post.path %>">reply</a>
+                                    <button class="inline-button-link copy-link" data-path="/posts/<%= post.path %>" title="copy link">copy</button>
                                 </span>
                             </td>
                         </tr>

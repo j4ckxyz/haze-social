@@ -6,6 +6,15 @@
     border: 1px solid var(--post-border);
     background: var(--post-bg);
 }
+.post[data-url] {
+    cursor: pointer;
+}
+.post[data-url]:hover {
+    border-color: var(--theme-color);
+}
+.post[data-url] .post-actions {
+    cursor: default;
+}
 
 .post > table {
     width: 100%;
