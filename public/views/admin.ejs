@@ -16,43 +16,60 @@
                 <h2>invite codes</h2>
 
                 <div class="invite-actions">
-                    <button id="generate-invite-btn" onclick="generateInvite()">+ generate invite code</button>
+                    <button id="generate-invite-btn" onclick="generateInvite()">generate invite code</button>
                 </div>
 
                 <div id="new-code-display" class="new-code hidden">
-                    <span>new code: </span>
+                    <span>new invite code: </span>
                     <code id="new-code-value"></code>
-                    <button class="copy-btn" onclick="copyCode()">copy</button>
+                    <button class="copy-btn" onclick="copyCode()">copy code</button>
+                    <button class="copy-link-btn" onclick="copyInviteLink()">copy link</button>
                 </div>
 
                 <table class="invite-table">
                     <tr>
                         <th>code</th>
                         <th>status</th>
+                        <th>used by</th>
                         <th>created by</th>
+                        <th>actions</th>
                     </tr>
                     <% for (let invite of invites) { %>
                         <tr class="<%= invite.used_by ? 'used' : 'unused' %>">
                             <td><code><%= invite.code %></code></td>
                             <td>
                                 <% if (invite.used_by) { %>
-                                    used by <em><%= invite.used_by_username %></em>
+                                    <span>used</span>
                                 <% } else { %>
                                     <span class="unused-badge">available</span>
                                 <% } %>
                             </td>
                             <td>
-                                <% if (invite.created_by_username) { %>
-                                    <%= invite.created_by_username %>
+                                <% if (invite.used_by_username && invite.used_by_path) { %>
+                                    <a href="/posts/<%= invite.used_by_path %>">@<%= invite.used_by_username %></a>
+                                <% } else { %>
+                                    <span>-</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (invite.created_by_username && invite.created_by_path) { %>
+                                    <a href="/posts/<%= invite.created_by_path %>">@<%= invite.created_by_username %></a>
                                 <% } else { %>
                                     <i>system</i>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (!invite.used_by) { %>
+                                    <button type="button" class="inline-button-link" onclick="copyInviteLinkFor('<%= invite.code %>', this)">copy link</button>
+                                <% } else { %>
+                                    <span>-</span>
                                 <% } %>
                             </td>
                         </tr>
                     <% } %>
                     <% if (invites.length === 0) { %>
                         <tr>
-                            <td colspan="3"><i>no invite codes yet</i></td>
+                            <td colspan="5"><i>no invite codes yet</i></td>
                         </tr>
                     <% } %>
                 </table>
@@ -84,22 +101,44 @@
                 // reload after a moment so the table updates
                 setTimeout(() => location.reload(), 1500);
             } else {
-                alert(data.error || 'failed to generate code');
+                alert(data.error || 'couldnt generate an invite code try again');
             }
         } catch (err) {
-            alert('error generating invite code');
+            alert('couldnt generate an invite code try again');
         }
 
         btn.disabled = false;
-        btn.textContent = '+ generate invite code';
+        btn.textContent = 'generate invite code';
     }
 
     function copyCode() {
         const code = document.getElementById('new-code-value').textContent;
         navigator.clipboard.writeText(code).then(() => {
             const btn = document.querySelector('.copy-btn');
-            btn.textContent = 'copied!';
-            setTimeout(() => btn.textContent = 'copy', 2000);
+            btn.textContent = 'copied';
+            setTimeout(() => btn.textContent = 'copy code', 2000);
+        });
+    }
+
+    function inviteUrlFromCode(code) {
+        return `${window.location.origin}/signup?invite=${encodeURIComponent(code)}`;
+    }
+
+    function copyInviteLink() {
+        const code = document.getElementById('new-code-value').textContent;
+        const url = inviteUrlFromCode(code);
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.querySelector('.copy-link-btn');
+            btn.textContent = 'copied';
+            setTimeout(() => btn.textContent = 'copy link', 2000);
+        });
+    }
+
+    function copyInviteLinkFor(code, btn) {
+        const url = inviteUrlFromCode(code);
+        navigator.clipboard.writeText(url).then(() => {
+            btn.textContent = 'copied';
+            setTimeout(() => btn.textContent = 'copy link', 2000);
         });
     }
 </script>

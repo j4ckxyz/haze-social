@@ -2,6 +2,13 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
+let sharp = null;
+try {
+  sharp = require("sharp");
+} catch (_err) {
+  sharp = null;
+}
+
 const B2_CONFIGURED = !!(
   process.env.B2_BUCKET_NAME &&
   process.env.B2_BUCKET_ID &&
@@ -16,10 +23,21 @@ const LOCAL_MEDIA_URL_PATH = (
   process.env.LOCAL_MEDIA_URL_PATH || "/media"
 ).replace(/\/$/, "");
 
+exports.LOCAL_MEDIA_DIR = LOCAL_MEDIA_DIR;
+exports.LOCAL_MEDIA_URL_PATH = LOCAL_MEDIA_URL_PATH;
+
 // settings
 
 const MAX_FILE_SIZE = 100 * (1000 * 1000); // 100mb
 const MAX_FILE_COUNT = 10;
+const IMAGE_OPTIMIZATION_ENABLED =
+  String(process.env.IMAGE_OPTIMIZATION_ENABLED || "true") !== "false";
+const IMAGE_OPTIMIZATION_MIN_BYTES = Number(
+  process.env.IMAGE_OPTIMIZATION_MIN_BYTES || 1200 * 1000,
+);
+const IMAGE_MAX_DIMENSION = Number(process.env.IMAGE_MAX_DIMENSION || 2560);
+const IMAGE_JPEG_QUALITY = Number(process.env.IMAGE_JPEG_QUALITY || 86);
+const IMAGE_WEBP_QUALITY = Number(process.env.IMAGE_WEBP_QUALITY || 84);
 
 //
 
@@ -34,6 +52,18 @@ if (B2_CONFIGURED) {
   console.log(
     `b2 credentials not configured — media uploads will be stored locally in ${LOCAL_MEDIA_DIR}.`,
   );
+}
+
+if (IMAGE_OPTIMIZATION_ENABLED) {
+  if (sharp) {
+    console.log(
+      `server image optimization enabled (max ${IMAGE_MAX_DIMENSION}px, jpeg q${IMAGE_JPEG_QUALITY}, webp q${IMAGE_WEBP_QUALITY}).`,
+    );
+  } else {
+    console.log(
+      "server image optimization requested but sharp is not installed — skipping optimization.",
+    );
+  }
 }
 
 exports.none = multer({ storage: multer.memoryStorage() }).none();
@@ -52,6 +82,10 @@ exports.uploadMulter = multer({
 }).array("files");
 
 exports.storeMedia = async (file) => {
+  if (IMAGE_OPTIMIZATION_ENABLED) {
+    await maybeOptimizeImage(file);
+  }
+
   if (B2_CONFIGURED) {
     return exports.uploadB2(file);
   }
@@ -97,6 +131,81 @@ exports.uploadB2 = async (file) => {
 
   return;
 };
+
+async function maybeOptimizeImage(file) {
+  if (!sharp) return;
+  if (!file || !file.path) return;
+
+  const mime = String(file.mimetype || "").toLowerCase();
+  if (!mime.startsWith("image/")) return;
+  if (mime === "image/gif") return;
+
+  const inputPath = file.path;
+  const initialStats = await fs.promises.stat(inputPath).catch(() => null);
+  if (!initialStats) return;
+
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  const supported = [".jpg", ".jpeg", ".png", ".webp"];
+  if (!supported.includes(ext)) return;
+
+  const source = sharp(inputPath, { failOn: "none", sequentialRead: true });
+  const metadata = await source.metadata().catch(() => null);
+  if (!metadata || !metadata.width || !metadata.height) return;
+  if (metadata.pages && metadata.pages > 1) return;
+
+  const shouldResize =
+    Math.max(metadata.width, metadata.height) > IMAGE_MAX_DIMENSION;
+  const shouldCompress = initialStats.size >= IMAGE_OPTIMIZATION_MIN_BYTES;
+
+  if (!shouldResize && !shouldCompress) return;
+
+  let pipeline = sharp(inputPath, { failOn: "none", sequentialRead: true }).rotate();
+
+  if (shouldResize) {
+    pipeline = pipeline.resize({
+      width: IMAGE_MAX_DIMENSION,
+      height: IMAGE_MAX_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    });
+  }
+
+  if (ext === ".jpg" || ext === ".jpeg") {
+    pipeline = pipeline.jpeg({
+      quality: IMAGE_JPEG_QUALITY,
+      mozjpeg: true,
+      progressive: true,
+    });
+  } else if (ext === ".png") {
+    pipeline = pipeline.png({
+      compressionLevel: 9,
+      progressive: true,
+      palette: false,
+    });
+  } else if (ext === ".webp") {
+    pipeline = pipeline.webp({ quality: IMAGE_WEBP_QUALITY, effort: 4 });
+  }
+
+  const optimizedPath = `${inputPath}.opt`;
+
+  await pipeline.toFile(optimizedPath);
+
+  const optimizedStats = await fs.promises.stat(optimizedPath).catch(() => null);
+  if (!optimizedStats) {
+    await fs.promises.unlink(optimizedPath).catch(() => {});
+    return;
+  }
+
+  const resizedImage = shouldResize;
+  const sizeImproved = optimizedStats.size < initialStats.size * 0.95;
+
+  if (!resizedImage && !sizeImproved) {
+    await fs.promises.unlink(optimizedPath).catch(() => {});
+    return;
+  }
+
+  await fs.promises.rename(optimizedPath, inputPath);
+}
 
 function createStoredFileName(originalName) {
   const ext = path

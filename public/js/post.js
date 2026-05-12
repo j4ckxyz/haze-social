@@ -1,9 +1,11 @@
-var image_dialog;
+var media_viewer_dialog;
+var media_viewer_track;
+var media_viewer_counter;
+var media_viewer_items = [];
+var media_viewer_index = 0;
 
 function treat_posts() {
-    image_dialog = document.createElement("dialog");
-    image_dialog.className = "image-dialog";
-    document.body.appendChild(image_dialog);
+    ensure_media_viewer();
 
     for (let el of document.querySelectorAll(".date-relative")) {
         const timestamp = Number(el.textContent);
@@ -60,6 +62,102 @@ function treat_posts() {
     }
 }
 
+function ensure_media_viewer() {
+    if (media_viewer_dialog) return;
+
+    media_viewer_dialog = document.createElement("dialog");
+    media_viewer_dialog.className = "media-viewer";
+    media_viewer_dialog.innerHTML = `
+        <button class="media-viewer-close" type="button" aria-label="close">×</button>
+        <button class="media-viewer-nav prev" type="button" aria-label="previous">‹</button>
+        <div class="media-viewer-viewport"><div class="media-viewer-track"></div></div>
+        <button class="media-viewer-nav next" type="button" aria-label="next">›</button>
+        <div class="media-viewer-count">1/1</div>
+    `;
+
+    document.body.appendChild(media_viewer_dialog);
+
+    media_viewer_track = media_viewer_dialog.querySelector(".media-viewer-track");
+    media_viewer_counter = media_viewer_dialog.querySelector(".media-viewer-count");
+
+    media_viewer_dialog.querySelector(".media-viewer-close").onclick = () => media_viewer_dialog.close();
+    media_viewer_dialog.querySelector(".media-viewer-nav.prev").onclick = () => media_viewer_go(-1);
+    media_viewer_dialog.querySelector(".media-viewer-nav.next").onclick = () => media_viewer_go(1);
+
+    const viewport = media_viewer_dialog.querySelector(".media-viewer-viewport");
+    let touchStartX = 0;
+    viewport.addEventListener("touchstart", (e) => {
+        touchStartX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+    }, { passive: true });
+    viewport.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : 0;
+        const delta = endX - touchStartX;
+        if (Math.abs(delta) < 35) return;
+        media_viewer_go(delta > 0 ? -1 : 1);
+    }, { passive: true });
+
+    media_viewer_dialog.addEventListener("click", (e) => {
+        if (e.target === media_viewer_dialog) media_viewer_dialog.close();
+    });
+
+    media_viewer_dialog.addEventListener("close", () => {
+        for (let video of media_viewer_dialog.querySelectorAll("video")) {
+            video.pause();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (!media_viewer_dialog.open) return;
+        if (e.key === "ArrowLeft") media_viewer_go(-1);
+        if (e.key === "ArrowRight") media_viewer_go(1);
+        if (e.key === "Escape") media_viewer_dialog.close();
+    });
+}
+
+function open_media_viewer(items, startIndex) {
+    ensure_media_viewer();
+    if (!items || items.length === 0) return;
+
+    media_viewer_items = items;
+    media_viewer_track.innerHTML = "";
+
+    for (let item of items) {
+        const slide = document.createElement("div");
+        slide.className = "media-viewer-slide";
+
+        if (item.type === "video") {
+            const video = document.createElement("video");
+            video.controls = true;
+            video.preload = "metadata";
+            video.src = item.src;
+            slide.appendChild(video);
+        } else {
+            const img = document.createElement("img");
+            img.src = item.src;
+            img.loading = "eager";
+            img.decoding = "async";
+            slide.appendChild(img);
+        }
+
+        media_viewer_track.appendChild(slide);
+    }
+
+    media_viewer_index = Math.max(0, Math.min(items.length - 1, Number(startIndex) || 0));
+    update_media_viewer();
+    media_viewer_dialog.showModal();
+}
+
+function media_viewer_go(delta) {
+    if (!media_viewer_items.length) return;
+    media_viewer_index = (media_viewer_index + delta + media_viewer_items.length) % media_viewer_items.length;
+    update_media_viewer();
+}
+
+function update_media_viewer() {
+    media_viewer_track.style.transform = `translateX(-${media_viewer_index * 100}%)`;
+    media_viewer_counter.textContent = `${media_viewer_index + 1}/${media_viewer_items.length}`;
+}
+
 function treat_post(content) {
     for (let image of content.querySelectorAll(".image")) {
         treat_image(image);
@@ -75,19 +173,15 @@ function treat_post(content) {
 function treat_image(block) {
     let image = block.querySelector("img");
 
-    // on firefox, loading has to be set before src
-    let src = image.src;
-    image.removeAttribute("src");
-    image.setAttribute("loading", "lazy");
-    image.setAttribute("src", src);
+    if (!image.getAttribute("loading")) image.setAttribute("loading", "lazy");
+    image.setAttribute("decoding", "async");
 
     if (image.src.endsWith("-doodle")) {
         image.classList.add("doodle");
         image.removeAttribute("alt");
     } else {
         image.onclick = function() {
-            image_dialog.innerHTML = '<img onclick="image_dialog.close()" src="' + this.src + '">';
-            image_dialog.showModal();
+            open_media_viewer([{ type: "image", src: this.src }], 0);
         }.bind(image);
     }
 
@@ -117,6 +211,28 @@ function treat_album(block) {
         var bubble = document.createElement("div");
         if (slides.children.length > 5) bubble.classList.add("hidden");
         bubbles.appendChild(bubble);
+    }
+
+    const viewerItems = [];
+    for (let i=0; i<slides.children.length; i++) {
+        const slide = slides.children[i];
+        const img = slide.querySelector("img");
+        const video = slide.querySelector("video source") || slide.querySelector("video");
+        if (img && img.src && !img.src.endsWith("-doodle")) {
+            viewerItems.push({ type: "image", src: img.src });
+        } else if (video && video.src) {
+            viewerItems.push({ type: "video", src: video.src });
+        } else {
+            viewerItems.push(null);
+        }
+
+        slide.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!viewerItems.length || !viewerItems[i]) return;
+            const items = viewerItems.filter(Boolean);
+            const start = items.findIndex((x) => x === viewerItems[i]);
+            open_media_viewer(items, start < 0 ? 0 : start);
+        });
     }
 
     wrapper.onscroll = function() {

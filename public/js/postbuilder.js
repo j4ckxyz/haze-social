@@ -24,7 +24,7 @@ window.onbeforeunload = () => {
     !document.body.classList.contains("publishing") &&
     post_builder.getElementsByClassName("block").length > 0
   ) {
-    return "discard post?";
+    return "discard this draft";
   }
 };
 
@@ -259,7 +259,7 @@ async function upload_post() {
   }
   if (size > max_transfer_size) {
     alert(
-      "this post exceeds the max upload size of 1 GB. please make your post smaller!",
+      "this post is bigger than the 1 gb upload limit remove some files and try again",
     );
     return;
   }
@@ -299,11 +299,11 @@ async function upload_post() {
       location.href = "/" + json.path;
     } else {
       alert(
-        "weird! your post failed to upload. please inform quewon as this shouldn't be happening.",
+        "couldnt upload your post try again",
       );
     }
   } else {
-    alert("you're offline (or the server is). try again later!");
+    alert("youre offline or the server is unavailable try again in a sec");
   }
 }
 
@@ -327,7 +327,7 @@ function get_file_block_src_element(block) {
 
 async function add_files(files) {
   if (files.length + Object.keys(file_of_objecturl).length > max_file_count) {
-    alert(`you can only attach up to ${max_file_count} files in a post!`);
+    alert(`you can attach up to ${max_file_count} files per post`);
     return;
   }
 
@@ -362,7 +362,7 @@ async function add_files(files) {
 
 async function add_file(file) {
   if (file.size > max_file_size_mb * 1000 * 1000) {
-    alert(`file too large :(\n(max file size: ${max_file_size_mb} MB)`);
+    alert(`that file is too large\nmax file size ${max_file_size_mb} mb`);
     return;
   }
 
@@ -376,7 +376,13 @@ async function add_file(file) {
         blob: file,
         toType: "image/jpeg",
       });
-      file = new File([result], file.name.split(".")[0] + ".jpg");
+      file = new File([result], file.name.split(".")[0] + ".jpg", {
+        type: "image/jpeg",
+      });
+    }
+
+    if (type === "image") {
+      file = await optimize_image_file(file);
     }
 
     var object_url = URL.createObjectURL(file);
@@ -401,7 +407,7 @@ async function add_file(file) {
 
     return block;
   } else {
-    alert("file type " + file.type + " not supported :(");
+    alert("this file type isnt supported: " + file.type);
   }
 }
 
@@ -416,6 +422,92 @@ function all_file_blocks() {
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function optimize_image_file(file) {
+  try {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    if (file.type === "image/gif") return file;
+
+    const bitmap = await load_image_bitmap(file);
+    if (!bitmap) return file;
+
+    const width = bitmap.width;
+    const height = bitmap.height;
+    const maxDimension = 2048;
+    const scale = Math.min(1, maxDimension / Math.max(width, height));
+
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+
+    const shouldResize = scale < 1;
+    const shouldCompress = file.size > 1200 * 1000;
+    if (!shouldResize && !shouldCompress) {
+      if (bitmap.close) bitmap.close();
+      return file;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+
+    if (bitmap.close) bitmap.close();
+
+    const blob = await canvas_to_blob(canvas, "image/webp", 0.82);
+    if (!blob) return file;
+
+    if (blob.size >= file.size * 0.95) return file;
+
+    const name = (file.name || "image")
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "-")
+      .slice(0, 60);
+
+    return new File([blob], `${name || "image"}.webp`, {
+      type: "image/webp",
+      lastModified: Date.now(),
+    });
+  } catch (_err) {
+    return file;
+  }
+}
+
+async function load_image_bitmap(file) {
+  if (window.createImageBitmap) {
+    try {
+      return await createImageBitmap(file);
+    } catch (_err) {}
+  }
+
+  return await new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext("2d", { alpha: true });
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+
+    img.src = url;
+  });
+}
+
+function canvas_to_blob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), type, quality);
+  });
 }
 
 // recording
@@ -502,7 +594,7 @@ function start_recording(block) {
 
     let onError = (error) => {
       console.error(error);
-      alert("error occured while recording :(");
+      alert("couldnt start recording check microphone permissions and try again");
       block.remove();
     };
 
@@ -510,7 +602,7 @@ function start_recording(block) {
       .getUserMedia({ audio: true })
       .then(onSuccess, onError);
   } else {
-    alert("recording not supported on this browser");
+    alert("audio recording isnt supported in this browser");
     block.remove();
   }
 }

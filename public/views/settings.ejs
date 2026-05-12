@@ -20,10 +20,24 @@
                 <a href="#data">data</a>
             </nav>
 
-            <% if (locals.created) { %>
+            <% 
+                const createdMessages = {
+                    profile_updated: "profile colour saved",
+                    pic_updated: "profile picture updated",
+                    api_key: "new api key created",
+                    revoked: "api key revoked",
+                    webhook: "webhook added",
+                    webhook_removed: "webhook disabled",
+                    password_updated: "password updated",
+                    sessions_revoked: "signed out on your other devices"
+                };
+                const createdMessage = locals.created ? (createdMessages[locals.created] || "settings saved") : null;
+            %>
+
+            <% if (createdMessage) { %>
                 <div class="new-code">
                     <strong>saved:</strong>
-                    <code><%= created %></code>
+                    <span><%= createdMessage %></span>
                 </div>
             <% } %>
 
@@ -41,8 +55,9 @@
                 </div>
 
                 <h3>profile picture</h3>
+                <p class="settings-note">upload a jpg png gif or webp image</p>
                 <% if (profilePic) { %>
-                    <p class="settings-note">current:</p>
+                    <p class="settings-note">current picture:</p>
                     <img class="settings-avatar-preview" src="<%= profilePic %>" alt="">
                 <% } %>
                 <form method="POST" action="/settings/profile-pic" enctype="multipart/form-data" class="settings-form-inline">
@@ -51,7 +66,7 @@
                 </form>
 
                 <h3>profile background color</h3>
-                <p class="settings-note">custom hex color for your profile header. example: #8cb7ff</p>
+                <p class="settings-note">choose a hex colour for your profile header eg #8cb7ff</p>
                 <form method="POST" action="/settings/profile" class="settings-form-inline">
                     <input type="text" name="profile_bg_color" pattern="^#[0-9a-fA-F]{6}$" value="<%= profileBgColor %>" required>
                     <input type="color" id="profile-color-picker" value="<%= profileBgColor %>" aria-label="profile color picker">
@@ -80,21 +95,30 @@
 
                 <h3>change password</h3>
                 <form method="POST" action="/settings/password" class="settings-stack">
-                    <input type="password" name="current_password" placeholder="current password" required autocomplete="current-password">
-                    <input type="password" name="new_password" placeholder="new password" required autocomplete="new-password">
-                    <input type="password" name="confirm_password" placeholder="confirm new password" required autocomplete="new-password">
+                    <label>
+                        current password
+                        <input type="password" name="current_password" required autocomplete="current-password">
+                    </label>
+                    <label>
+                        new password
+                        <input type="password" name="new_password" required autocomplete="new-password">
+                    </label>
+                    <label>
+                        confirm new password
+                        <input type="password" name="confirm_password" required autocomplete="new-password">
+                    </label>
                     <button type="submit">update password</button>
                 </form>
 
                 <h3>sessions</h3>
-                <form method="POST" action="/settings/sessions/revoke-others" onsubmit="return confirm('log out your other devices?')">
+                <form method="POST" action="/settings/sessions/revoke-others" onsubmit="return confirm('sign out on your other devices youll stay signed in here')">
                     <button type="submit">log out other devices</button>
                 </form>
             </section>
 
             <section class="settings-panel" id="developer">
                 <h2>developer settings</h2>
-                <p class="settings-note">use API keys for scripts and bots. keys are shown only once when created.</p>
+                <p class="settings-note">use api keys for scripts and bots keys are shown once when created</p>
 
                 <% if (locals.newApiKey) { %>
                     <div class="new-code">
@@ -105,13 +129,14 @@
 
                 <h3>create API key</h3>
                 <form method="POST" action="/settings/api-keys/create" class="settings-form-inline">
-                    <input type="text" name="label" maxlength="40" placeholder="label (for example: discord-bot)" required>
+                    <label for="api-key-label">label</label>
+                    <input id="api-key-label" type="text" name="label" maxlength="40" placeholder="eg discord-bot" required>
                     <button type="submit">create key</button>
                 </form>
 
                 <h3>your API keys</h3>
                 <% if (apiKeys.length === 0) { %>
-                    <p class="settings-empty">no API keys yet.</p>
+                    <p class="settings-empty">no api keys yet create one to get started</p>
                 <% } %>
 
                 <% for (let key of apiKeys) { %>
@@ -122,7 +147,7 @@
                         </div>
 
                         <% if (!key.revoked) { %>
-                            <form method="POST" action="/settings/api-keys/<%= key.key_id %>/revoke" onsubmit="return confirm('revoke this API key?')">
+                            <form method="POST" action="/settings/api-keys/<%= key.key_id %>/revoke" onsubmit="return confirm('revoke this api key scripts using it will stop working')">
                                 <button type="submit">revoke</button>
                             </form>
                         <% } else { %>
@@ -134,15 +159,16 @@
 
             <section class="settings-panel" id="webhooks">
                 <h2>webhooks</h2>
-                <p class="settings-note">get a POST request when a new post is published. ideal for discord relay bots.</p>
+                <p class="settings-note">send a post request to your endpoint whenever a new post is published</p>
 
                 <form method="POST" action="/settings/webhooks/create" class="settings-form-inline">
-                    <input type="url" name="url" placeholder="https://your-bot-endpoint.example/webhook" required>
+                    <label for="webhook-url">webhook url</label>
+                    <input id="webhook-url" type="url" name="url" placeholder="https://your-bot-endpoint.example/webhook" required>
                     <button type="submit">add webhook</button>
                 </form>
 
                 <% if (hooks.length === 0) { %>
-                    <p class="settings-empty">no webhooks yet.</p>
+                    <p class="settings-empty">no webhooks yet add one to receive post events</p>
                 <% } %>
 
                 <% for (let hook of hooks) { %>
@@ -156,7 +182,7 @@
                         </div>
 
                         <% if (hook.enabled === 1) { %>
-                            <form method="POST" action="/settings/webhooks/<%= hook.webhook_id %>/delete" onsubmit="return confirm('disable this webhook?')">
+                            <form method="POST" action="/settings/webhooks/<%= hook.webhook_id %>/delete" onsubmit="return confirm('disable this webhook new posts wont be sent to this url')">
                                 <button type="submit">disable</button>
                             </form>
                         <% } else { %>
@@ -168,7 +194,7 @@
 
             <section class="settings-panel" id="data">
                 <h2>data</h2>
-                <p class="settings-note">download your posts and edit history as json.</p>
+                <p class="settings-note">download your posts and edit history as json</p>
                 <a href="/settings/export/posts.json">download my posts export</a>
             </section>
 

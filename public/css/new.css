@@ -289,6 +289,8 @@ textarea {
 @media only screen and (max-width: 767px) {
     .new-post-page main {
         flex-direction: column;
+        padding: var(--space-sm);
+        gap: var(--space-md);
     }
     .new-post-page main > div:first-child {
         padding-bottom: 0;
@@ -298,7 +300,32 @@ textarea {
         max-width: unset;
     }
     #post-builder {
-        max-width: calc(100% - 1em);
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .buttonbar {
+        position: sticky;
+        bottom: calc(var(--mobile-tabbar-h, 4.25rem) + env(safe-area-inset-bottom) + 0.35rem);
+        z-index: 15;
+        background: var(--post-bg);
+        border: 1px solid var(--post-border);
+        border-radius: 999px;
+        padding: 0.35rem 0.5rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .buttonbar button {
+        min-height: 2.5rem;
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .post-button {
+        min-width: 4.75rem;
     }
 
     .block .options {

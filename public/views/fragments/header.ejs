@@ -1,13 +1,14 @@
 <header>
-    <a href="/" aria-label="home feed">haze</a>
+    <% const p = locals.currentPath || '/'; %>
+    <a href="/" aria-label="home feed" class="header-brand">haze</a>
     <% if (locals.user) { %>
-        <a href="/new" class="new-post-button" aria-label="write a new post">new</a>
+        <a href="/new" class="new-post-button <%= p === '/new' ? 'active' : '' %>" aria-label="write a new post">new</a>
         <nav class="header-actions" aria-label="primary">
             <% if (user.is_admin) { %>
-                <a href="/admin">admin</a>
+                <a href="/admin" class="<%= p.startsWith('/admin') ? 'active' : '' %>">admin</a>
             <% } %>
-            <a href="/settings">settings</a>
-            <a href="/posts" class="index-button">browse</a>
+            <a href="/settings" class="<%= p.startsWith('/settings') ? 'active' : '' %>">settings</a>
+            <a href="/posts" class="index-button <%= p === '/posts' ? 'active' : '' %>">browse</a>
         </nav>
         <div class="grow"></div>
         <span class="header-user"><em><%= user.username %></em></span>
@@ -17,8 +18,18 @@
     <% } else { %>
         <div class="grow"></div>
         <nav class="header-actions" aria-label="auth">
-            <a href="/login">log in</a>
-            <a href="/signup">sign up</a>
+            <a href="/login" class="<%= p.startsWith('/login') ? 'active' : '' %>">log in</a>
+            <a href="/signup" class="<%= p.startsWith('/signup') ? 'active' : '' %>">sign up</a>
         </nav>
     <% } %>
 </header>
+
+<% if (locals.user) { %>
+    <nav class="mobile-tabbar" aria-label="mobile navigation">
+        <a href="/" aria-label="home" class="<%= p === '/' || p.startsWith('/page/') ? 'active' : '' %>"><span aria-hidden="true">⌂</span></a>
+        <a href="/posts" aria-label="browse" class="<%= p === '/posts' ? 'active' : '' %>"><span aria-hidden="true">#</span></a>
+        <a href="/new" aria-label="new post" class="mobile-tabbar-new <%= p === '/new' ? 'active' : '' %>"><span aria-hidden="true">＋</span></a>
+        <a href="/posts/<%= locals.userAuthorPath %>" aria-label="my profile" class="<%= p.startsWith('/posts/' + locals.userAuthorPath) ? 'active' : '' %>"><span aria-hidden="true">◉</span></a>
+        <a href="/settings" aria-label="settings" class="<%= p.startsWith('/settings') ? 'active' : '' %>"><span aria-hidden="true">⚙</span></a>
+    </nav>
+<% } %>

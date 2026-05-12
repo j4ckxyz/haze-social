@@ -25,13 +25,13 @@ function sanitizeWebhookUrl(url) {
 
 function createWebhook(userId, url) {
     const safeUrl = sanitizeWebhookUrl(url);
-    if (!safeUrl) return { error: 'webhook URL must be a valid https URL' };
+    if (!safeUrl) return { error: 'webhook url must start with https:// and be valid' };
 
     const existing = sqlite.db.prepare(
         'SELECT webhook_id FROM webhooks WHERE user_id = ? AND url = ? AND enabled = 1 LIMIT 1'
     ).get(userId, safeUrl);
 
-    if (existing) return { error: 'that webhook already exists' };
+    if (existing) return { error: 'that webhook is already added' };
 
     const secret = crypto.randomBytes(24).toString('hex');
     sqlite.insert('webhooks', {

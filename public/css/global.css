@@ -301,6 +301,102 @@ nav a {
     align-items: center;
 }
 
+@media (max-width: 767px) {
+    :root {
+        --mobile-tabbar-h: 4.25rem;
+    }
+
+    body {
+        background: var(--post-bg);
+    }
+
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--post-border);
+        padding: 0.6rem 0.85rem;
+        gap: var(--space-sm);
+        flex-wrap: nowrap;
+    }
+
+    .header-actions,
+    .header-user,
+    .header-logout-form,
+    .new-post-button {
+        display: none;
+    }
+
+    .header-brand {
+        font-size: 1.05rem;
+        letter-spacing: 0.01em;
+    }
+
+    .scroll-container {
+        padding-bottom: calc(var(--mobile-tabbar-h) + env(safe-area-inset-bottom));
+    }
+
+    main {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        gap: var(--space-md);
+    }
+
+    .mobile-tabbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        height: var(--mobile-tabbar-h);
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        border-top: 1px solid var(--post-border);
+        background: var(--post-bg);
+        padding: 0.35rem 0.4rem calc(0.35rem + env(safe-area-inset-bottom));
+        box-sizing: border-box;
+        gap: 0.25rem;
+    }
+
+    .mobile-tabbar a {
+        min-height: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        text-decoration: none;
+        color: color-mix(in oklab, var(--color) 72%, transparent);
+        font-family: sans-serif;
+        font-size: 1.2rem;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .mobile-tabbar a.active {
+        color: var(--theme-color);
+        background: color-mix(in oklab, var(--theme-color) 14%, transparent);
+        font-weight: 700;
+    }
+
+    .mobile-tabbar-new {
+        background: var(--theme-color);
+        color: var(--bg) !important;
+        font-weight: 700;
+        font-size: 1.35rem;
+    }
+
+    .mobile-tabbar-new.active {
+        box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--bg) 65%, transparent);
+    }
+
+    footer {
+        border-top: none;
+        padding-bottom: var(--space-xl);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -347,4 +443,12 @@ footer .flex {
     opacity: 0.7;
     text-align: center;
     padding: var(--space-xl) var(--space-md);
+}
+
+.mobile-tabbar {
+    display: none;
+}
+
+.header-brand {
+    font-weight: 700;
 }

@@ -35,7 +35,7 @@
                                 <span class="post-actions">
                                     <% if (locals.user && locals.user.username === post.author) { %>
                                         <a href="/edit/<%= post.path %>">edit</a>
-                                        <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                        <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post this cant be undone')"><button type="submit" class="inline-button-link">delete</button></form>
                                     <% } %>
                                     <a href="/reply/<%= post.path %>">reply</a>
                                     <button class="inline-button-link copy-link" data-path="/posts/<%= post.path %>" title="copy link">copy</button>
@@ -187,7 +187,7 @@
         if (result) {
             console.log(result);
         } else {
-            alert("error subscribing to push notifications--try again later?");
+            alert("couldnt turn on notifications try again in a sec");
         }
     }
 </script>

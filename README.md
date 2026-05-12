@@ -8,8 +8,9 @@ It is intentionally simple: Node.js, Express, EJS templates, SQLite, plain CSS, 
 
 - private home feed for authenticated users
 - invite-code registration
+- invite links (`/signup?invite=...`) for one-tap signup
 - login/logout sessions stored in SQLite
-- admin invite-code generation
+- admin invite-code generation + copy-link helpers
 - text, image, video, audio, album, recording, and doodle post blocks
 - clickable Markdown links and automatic bare URL links
 - `@username` mentions that link to user post pages
@@ -18,7 +19,10 @@ It is intentionally simple: Node.js, Express, EJS templates, SQLite, plain CSS, 
 - editable posts with edit history
 - local media uploads by default
 - optional Backblaze B2-compatible remote media storage
+- automatic image optimization on upload (when `sharp` is available)
+- long-cache headers for local media URLs for faster repeat loads
 - progressive web app support
+- mobile-first UI improvements: bottom tab bar + full-screen swipe media viewer for albums
 - optional push notifications
 - per-user API keys from settings
 - JSON API for feed + posts + account info
@@ -111,6 +115,8 @@ Default public URL path:
 
 That means this works without any bucket, cloud storage, or extra configuration.
 
+When `sharp` is installed (default dependency), image uploads are optimized server-side automatically with conservative quality settings. If `sharp` is missing, uploads still work and optimization is skipped.
+
 ### Local media environment variables
 
 You usually do not need these, but they are available:
@@ -185,6 +191,13 @@ TMP_UPLOAD_DIR=tmp
 # VAPID_ADMIN_EMAIL=
 # VAPID_PUBLIC_KEY=
 # VAPID_PRIVATE_KEY=
+
+# Optional image optimization tuning
+# IMAGE_OPTIMIZATION_ENABLED=true
+# IMAGE_OPTIMIZATION_MIN_BYTES=1200000
+# IMAGE_MAX_DIMENSION=2560
+# IMAGE_JPEG_QUALITY=86
+# IMAGE_WEBP_QUALITY=84
 
 # Optional absolute base URL for embeds/webhooks
 # PUBLIC_BASE_URL=https://your-domain.example
@@ -370,6 +383,8 @@ npm run backup-instance
 ## API and webhooks
 
 See `API.md` for API key auth, endpoint examples, and webhook payload/signature details.
+
+For a practical Discord relay setup, see `DISCORD_BOT_WEBHOOK_GUIDE.md`.
 
 ## Development notes
 

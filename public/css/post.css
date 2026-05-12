@@ -3,14 +3,18 @@
     max-width: var(--max-post-width);
     box-sizing: border-box;
     word-break: break-word;
-    border: 1px solid var(--post-border);
-    background: var(--post-bg);
+    border: 1px solid color-mix(in oklab, var(--post-border) 82%, transparent);
+    border-radius: 14px;
+    background: color-mix(in oklab, var(--post-bg) 96%, var(--theme-color) 4%);
+    overflow: hidden;
 }
 .post[data-url] {
     cursor: pointer;
+    transition: border-color 120ms ease, transform 120ms ease;
 }
 .post[data-url]:hover {
-    border-color: var(--theme-color);
+    border-color: color-mix(in oklab, var(--theme-color) 45%, var(--post-border));
+    transform: translateY(-1px);
 }
 .post[data-url] .post-actions {
     cursor: default;
@@ -21,6 +25,10 @@
     margin-left: var(--space-sm);
     margin-right: var(--space-sm);
     width: calc(100% - (var(--space-sm) * 2));
+}
+.post > table:first-child {
+    padding-top: var(--space-xs);
+    padding-bottom: var(--space-xs);
 }
 .post > table td {
     padding: 0;
@@ -49,7 +57,7 @@
 }
 
 .post-line {
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: wrap;
 }
 
@@ -58,6 +66,7 @@
     align-items: center;
     gap: var(--space-sm);
     white-space: nowrap;
+    opacity: 0.9;
 }
 
 .post-actions a,
@@ -93,6 +102,7 @@
 
 .content {
     padding: var(--space-md);
+    border-top: 1px solid color-mix(in oklab, var(--post-border) 72%, transparent);
 }
 .content em {
     font-style: italic;
@@ -299,8 +309,8 @@
     margin-bottom: -1em;
 }
 
-.image-dialog {
-    padding: 3vh;
+.media-viewer {
+    padding: 0;
     box-sizing: border-box;
     margin: 0;
     border: none;
@@ -309,16 +319,106 @@
     max-width: none;
     max-height: none;
     overflow: hidden;
-    background: var(--dialog-backdrop);
+    background: rgba(0, 0, 0, 0.92);
+    color: #fff;
 }
-.image-dialog img {
+.media-viewer::backdrop {
+    background: rgba(0, 0, 0, 0.82);
+}
+.media-viewer-viewport {
     width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+.media-viewer-track {
+    height: 100%;
+    display: flex;
+    transition: transform 180ms ease;
+}
+.media-viewer-slide {
+    flex: 0 0 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.75rem 0.5rem 3.5rem;
+    box-sizing: border-box;
+}
+.media-viewer-slide img,
+.media-viewer-slide video {
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
-    cursor: pointer;
+}
+.media-viewer-close,
+.media-viewer-nav {
+    position: absolute;
+    z-index: 2;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border-radius: 999px;
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.35rem;
+}
+.media-viewer-close {
+    top: 0.5rem;
+    right: 0.5rem;
+}
+.media-viewer-nav.prev {
+    top: 50%;
+    left: 0.45rem;
+    transform: translateY(-50%);
+}
+.media-viewer-nav.next {
+    top: 50%;
+    right: 0.45rem;
+    transform: translateY(-50%);
+}
+.media-viewer-count {
+    position: absolute;
+    left: 50%;
+    bottom: 0.65rem;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: monospace;
+    font-size: 0.82rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
 }
 
 @media (max-width: 680px) {
+    .media-viewer-nav {
+        width: 2.1rem;
+        height: 2.1rem;
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 680px) {
+    .post {
+        max-width: 100%;
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+        background: var(--post-bg);
+    }
+
+    .post > table {
+        margin-left: var(--space-xs);
+        margin-right: var(--space-xs);
+        width: calc(100% - (var(--space-xs) * 2));
+    }
+
+    .content {
+        padding: var(--space-sm);
+    }
+
     .post-line {
         flex-direction: column;
         gap: var(--space-xs);
@@ -326,9 +426,20 @@
 
     .post-actions {
         gap: var(--space-md);
+        width: 100%;
+        justify-content: space-between;
     }
 
     .post > table td:first-child {
         width: 2.25em;
     }
+
+    .content > .image,
+    .content > .audio,
+    .content > .video,
+    .content > .album {
+        margin-left: calc(-1 * var(--space-sm));
+        width: calc(100% + (var(--space-sm) * 2));
+    }
 }
+

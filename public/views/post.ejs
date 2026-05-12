@@ -14,8 +14,8 @@
             <% if (timestamp != -1) { %>
                 <% if (!locals.live || locals.live == false) { %>
                     <div class="post-not-live-banner">
-                        <em>this post is being processed :)</em>
-                        <span>the page will refresh once it's live.</span>
+                        <em>your post is still uploading</em>
+                        <span>this page refreshes automatically when its ready</span>
                     </div>
                 <% } %>
 
@@ -32,7 +32,7 @@
                                 <span class="post-actions">
                                     <% if (locals.user && locals.user.username === author) { %>
                                         <a href="/edit/<%= path %>">edit</a>
-                                        <form action="/delete/<%= path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                        <form action="/delete/<%= path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post this cant be undone')"><button type="submit" class="inline-button-link">delete</button></form>
                                     <% } %>
                                     <a href="/reply/<%= path %>">reply</a>
                                 </span>
@@ -68,7 +68,7 @@
                                         <span class="post-actions">
                                             <% if (locals.user && locals.user.username === post.author) { %>
                                                 <a href="/edit/<%= post.path %>">edit</a>
-                                                <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post?')"><button type="submit" class="inline-button-link">delete</button></form>
+                                                <form action="/delete/<%= post.path %>" method="POST" class="inline-action" onsubmit="return confirm('delete this post this cant be undone')"><button type="submit" class="inline-button-link">delete</button></form>
                                             <% } %>
                                             <a href="/reply/<%= post.path %>">reply</a>
                                             <button class="inline-button-link copy-link" data-path="/posts/<%= post.path %>" title="copy link">copy</button>
@@ -104,7 +104,7 @@
                     <% } %>
                 <% } %>
             <% } else { %>
-                <p>this post does not exist or is no longer available.</p>
+                <p>this post isnt available anymore or it never existed</p>
                 <p>
                     <a href="#" onclick="history.back(); return false;">go back</a>
                 </p>
@@ -132,7 +132,7 @@
 
         if (json && (json.live || json.post_not_found)) {
             if (json.post_not_found) {
-                alert("this post was purged due to an uploading error. sorry about that!");
+                alert("this post couldnt be finished because upload processing failed");
                 history.back();
             } else if (json.live) {
                 window.location.reload();

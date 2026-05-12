@@ -26,7 +26,7 @@
                     <button onclick="add_post_block('text')" title="add text block">text</button>
                     <button onclick="this.nextElementSibling.click()" title="add media file(s)">media</button>
                         <input type="file" multiple="multiple" accept="image/*, audio/*, video/*">
-                    <button onclick="add_post_block('rec')" title="record audio">record</button>
+                    <button onclick="add_post_block('rec')" title="record audio">record audio</button>
                     <button onclick="add_post_block('draw')" title="doodle something">doodle</button>
                     <span class="grow"></span>
                     <button class="post-button" onclick="confirm_dialog.showModal()">post</button>
@@ -35,12 +35,12 @@
                 <p>
                     <details>
                         <summary>[?] formatting tips</summary>
-                        <p>hello. here are some ways to spice up your text.</p>
+                        <p>use these markdown shortcuts to format your post</p>
                         <table>
                             <tr>
                                 <th>STYLE</th>
                                 <th>TYPE IT LIKE THIS</th>
-                                <th>& IT'LL LOOK LIKE THIS</th>
+                                <th>what it looks like</th>
                             </tr>
                             <tr>
                                 <th>italic</th>
@@ -83,9 +83,9 @@
                                 <td><a>link</a></td>
                             </tr>
                             <tr>
-                                <th>read more...</th>
+                                <th>read more</th>
                                 <td>---</td>
-                                <td>breaks your post into two. everything under the dashes becomes hidden until a user clicks <a>read more...</a>.<br>(the dashes should be on its own line.)</td>
+                                <td>splits your post in two everything below the dashes stays hidden until someone taps <a>read more...</a><br>(put the dashes on their own line)</td>
                             </tr>
                         </table>
                     </details>
@@ -138,7 +138,7 @@
 
     <template id="text-block-template">
         <div class="text block" data-type="text">
-            <textarea oninput="this.style.height=''; this.style.height=this.scrollHeight+'px'" placeholder="write here"></textarea>
+            <textarea oninput="this.style.height=''; this.style.height=this.scrollHeight+'px'" placeholder="write your post"></textarea>
             <%- include('fragments/post-options.ejs') %>
         </div>
     </template>
@@ -198,14 +198,14 @@
     </template>
 
     <dialog id="confirm-dialog">
-        post this?<br>
+        post now<br>
         <br>
         <button class="dialog-close-button" onclick="this.parentElement.close()">cancel</button>
         <button onclick="this.parentElement.close(); upload_post()">post</button>
     </dialog>
 
     <dialog id="upload-dialog">
-        uploading post...
+        uploading your post keep this tab open
     </dialog>
 
     <dialog id="post-preview-dialog">

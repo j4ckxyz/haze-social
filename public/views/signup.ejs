@@ -16,6 +16,23 @@
                 <h2>sign up</h2>
                 <p class="auth-hint">create your account with an invite code from someone in your group.</p>
 
+                <% if (locals.invite_status === 'ready') { %>
+                    <div class="new-code"><%= invite_message %></div>
+                <% } %>
+
+                <% if (locals.invite_status === 'used') { %>
+                    <div class="auth-error">
+                        <%= invite_message %>
+                        <% if (locals.invite_used_by_username && locals.invite_used_by_path) { %>
+                            by <a href="/posts/<%= invite_used_by_path %>">@<%= invite_used_by_username %></a>
+                        <% } %>
+                    </div>
+                <% } %>
+
+                <% if (locals.invite_status === 'invalid') { %>
+                    <div class="auth-error"><%= invite_message %></div>
+                <% } %>
+
                 <% if (locals.error) { %>
                     <div class="auth-error"><%= error %></div>
                 <% } %>

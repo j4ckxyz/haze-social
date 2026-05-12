@@ -226,11 +226,11 @@ function useInviteCode(code, userId) {
 function createUser(username, password, inviteCode) {
     const existing = sqlite.query('users', { username: username.toLowerCase() });
     if (existing) {
-        return { error: 'username already taken' };
+        return { error: 'that username is already taken' };
     }
 
     if (!validateInviteCode(inviteCode)) {
-        return { error: 'invalid or already used invite code' };
+        return { error: 'invite code is invalid or already used' };
     }
 
     // first user becomes admin
@@ -254,20 +254,20 @@ function createUser(username, password, inviteCode) {
 
 function loginUser(username, password) {
     const user = sqlite.query('users', { username: username.toLowerCase() });
-    if (!user) return { error: 'invalid username or password' };
-    if (!verifyPassword(password, user.password_hash)) return { error: 'invalid username or password' };
+    if (!user) return { error: 'username or password is incorrect' };
+    if (!verifyPassword(password, user.password_hash)) return { error: 'username or password is incorrect' };
     return { userId: user.user_id, username: user.username, isAdmin: user.is_admin === 1 };
 }
 
 function changePassword(userId, currentPassword, nextPassword) {
     const user = sqlite.query('users', { user_id: userId });
-    if (!user) return { error: 'user not found' };
-    if (!currentPassword || !nextPassword) return { error: 'missing password fields' };
+    if (!user) return { error: "couldnt find your account" };
+    if (!currentPassword || !nextPassword) return { error: 'enter your current password and a new password' };
     if (!verifyPassword(currentPassword, user.password_hash)) {
         return { error: 'current password is incorrect' };
     }
     if (String(nextPassword).length < 4) {
-        return { error: 'new password must be at least 4 characters' };
+        return { error: 'new password needs to be at least 4 characters' };
     }
 
     sqlite.update('users', { user_id: userId }, { password_hash: hashPassword(nextPassword) });

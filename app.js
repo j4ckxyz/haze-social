@@ -26,7 +26,28 @@ const MAX_TITLE_LENGTH = 40;
 //
 
 app.use(compression());
-app.use("/", express.static(path.join(__dirname, "public")));
+
+const publicDir = path.join(__dirname, "public");
+const localMediaPath = upload.LOCAL_MEDIA_URL_PATH || "/media";
+const localMediaDir = path.resolve(__dirname, upload.LOCAL_MEDIA_DIR || path.join("public", "media"));
+
+app.use(
+  localMediaPath,
+  express.static(localMediaDir, {
+    maxAge: "365d",
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  }),
+);
+
+app.use(
+  "/",
+  express.static(publicDir, {
+    maxAge: "7d",
+  }),
+);
 // use form data
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: false }));
@@ -41,6 +62,8 @@ app.use(auth.authMiddleware);
 // make user available to all templates
 app.use((req, res, next) => {
   res.locals.user = req.user || null;
+  res.locals.currentPath = req.path || "/";
+  res.locals.userAuthorPath = req.user ? get_author_path(req.user.username) : null;
   next();
 });
 
@@ -312,9 +335,69 @@ app.get("/posts/:author/:id/is-live", requireContentAuth, (req, res) => {
 
 // auth routes
 
+function getInvitePageState(rawInviteCode) {
+  const inviteCode = String(rawInviteCode || "").trim().toLowerCase();
+  if (!inviteCode) {
+    return {
+      invite_code: "",
+      invite_status: null,
+      invite_message: null,
+      invite_used_by_username: null,
+      invite_used_by_path: null,
+    };
+  }
+
+  const invite = sqlite.db
+    .prepare(
+      `SELECT ic.code, ic.used_by, u.username AS used_by_username
+       FROM invite_codes ic
+       LEFT JOIN users u ON ic.used_by = u.user_id
+       WHERE ic.code = ?
+       LIMIT 1`,
+    )
+    .get(inviteCode);
+
+  if (!invite) {
+    return {
+      invite_code: inviteCode,
+      invite_status: "invalid",
+      invite_message: "this invite link isnt valid",
+      invite_used_by_username: null,
+      invite_used_by_path: null,
+    };
+  }
+
+  if (invite.used_by !== null) {
+    const username = invite.used_by_username || null;
+    return {
+      invite_code: invite.code,
+      invite_status: "used",
+      invite_message: "this invite code has already been used",
+      invite_used_by_username: username,
+      invite_used_by_path: username ? get_author_path(username) : null,
+    };
+  }
+
+  return {
+    invite_code: invite.code,
+    invite_status: "ready",
+    invite_message: "invite code added from your link",
+    invite_used_by_username: null,
+    invite_used_by_path: null,
+  };
+}
+
+function renderSignup(res, locals = {}) {
+  const inviteState = getInvitePageState(locals.invite_code);
+  return res.render("signup", {
+    ...locals,
+    ...inviteState,
+  });
+}
+
 app.get("/signup", (req, res) => {
   if (req.user) return res.redirect("/");
-  res.render("signup");
+  return renderSignup(res, { invite_code: req.query.invite });
 });
 
 app.post("/signup", (req, res) => {
@@ -324,41 +407,41 @@ app.post("/signup", (req, res) => {
 
   // validation
   if (!username || !password || !confirm || !invite_code) {
-    return res.render("signup", {
-      error: "all fields are required",
+    return renderSignup(res, {
+      error: "fill in username password confirm password and invite code",
       username,
       invite_code,
     });
   }
 
   if (username.length < 1 || username.length > 30) {
-    return res.render("signup", {
-      error: "username must be 1-30 characters",
+    return renderSignup(res, {
+      error: "username needs to be 1 to 30 characters",
       username,
       invite_code,
     });
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-    return res.render("signup", {
+    return renderSignup(res, {
       error:
-        "username can only contain letters, numbers, dashes, and underscores",
+        "username can only use letters numbers dashes and underscores",
       username,
       invite_code,
     });
   }
 
   if (password.length < 4) {
-    return res.render("signup", {
-      error: "password must be at least 4 characters",
+    return renderSignup(res, {
+      error: "password needs to be at least 4 characters",
       username,
       invite_code,
     });
   }
 
   if (password !== confirm) {
-    return res.render("signup", {
-      error: "passwords do not match",
+    return renderSignup(res, {
+      error: "passwords dont match re-enter both fields",
       username,
       invite_code,
     });
@@ -367,7 +450,7 @@ app.post("/signup", (req, res) => {
   const result = auth.createUser(username, password, invite_code);
 
   if (result.error) {
-    return res.render("signup", { error: result.error, username, invite_code });
+    return renderSignup(res, { error: result.error, username, invite_code });
   }
 
   // auto-login after signup
@@ -393,7 +476,7 @@ app.post("/login", (req, res) => {
 
   if (!username || !password) {
     return res.render("login", {
-      error: "username and password are required",
+      error: "enter username and password",
       username,
     });
   }
@@ -423,7 +506,15 @@ app.post("/logout", (req, res) => {
 // admin routes
 
 app.get("/admin", auth.requireAuth, auth.requireAdmin, (req, res) => {
-  const invites = auth.getAllInviteCodes();
+  const invites = auth.getAllInviteCodes().map((invite) => ({
+    ...invite,
+    used_by_path: invite.used_by_username
+      ? get_author_path(invite.used_by_username)
+      : null,
+    created_by_path: invite.created_by_username
+      ? get_author_path(invite.created_by_username)
+      : null,
+  }));
   res.render("admin", { invites });
 });
 
@@ -436,7 +527,7 @@ app.post(
       const code = auth.createInviteCode(req.user.user_id);
       res.json({ code });
     } catch (err) {
-      res.json({ error: "failed to generate invite code" });
+      res.json({ error: "couldnt generate an invite code try again" });
     }
   },
 );
@@ -461,7 +552,7 @@ app.get("/settings", auth.requireAuth, (req, res) => {
 app.post("/settings/profile", auth.requireAuth, upload.none, (req, res) => {
   const color = normalize_hex_color(req.body.profile_bg_color);
   if (!color) {
-    return res.redirect(`/settings?error=${encodeURIComponent("profile color must be a full hex value like #80a2ff")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("profile colour must be a full hex value like #80a2ff")}`);
   }
 
   sqlite.update("users", { user_id: req.user.user_id }, { profile_bg_color: color });
@@ -470,13 +561,13 @@ app.post("/settings/profile", auth.requireAuth, upload.none, (req, res) => {
 
 app.post("/settings/profile-pic", auth.requireAuth, upload.uploadMulter, async (req, res) => {
   if (!req.files || req.files.length === 0) {
-    return res.redirect(`/settings?error=${encodeURIComponent("no file uploaded")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("choose an image file to upload")}`);
   }
 
   const file = req.files[0];
   const ext = path.extname(file.originalname || "").toLowerCase();
   if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(ext)) {
-    return res.redirect(`/settings?error=${encodeURIComponent("profile pic must be an image (jpg, png, gif, webp)")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("profile picture needs to be a jpg png gif or webp image")}`);
   }
 
   try {
@@ -485,7 +576,7 @@ app.post("/settings/profile-pic", auth.requireAuth, upload.uploadMulter, async (
     return res.redirect("/settings?created=pic_updated");
   } catch (err) {
     console.error("profile pic upload error:", err);
-    return res.redirect(`/settings?error=${encodeURIComponent("upload failed")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("couldnt upload your profile picture try again")}`);
   }
 });
 
@@ -495,7 +586,7 @@ app.post("/settings/api-keys/create", auth.requireAuth, upload.none, (req, res) 
     const key = auth.createApiKey(req.user.user_id, label);
     return res.redirect(`/settings?created=api_key&new_api_key=${encodeURIComponent(key)}`);
   } catch (err) {
-    return res.redirect(`/settings?error=${encodeURIComponent("failed to create API key")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("couldnt create an api key try again")}`);
   }
 });
 
@@ -524,7 +615,7 @@ app.post("/settings/password", auth.requireAuth, upload.none, (req, res) => {
   const confirmPassword = String(req.body.confirm_password || "");
 
   if (newPassword !== confirmPassword) {
-    return res.redirect(`/settings?error=${encodeURIComponent("new passwords do not match")}`);
+    return res.redirect(`/settings?error=${encodeURIComponent("new passwords dont match")}`);
   }
 
   const result = auth.changePassword(req.user.user_id, currentPassword, newPassword);
@@ -1066,7 +1157,7 @@ function parse_markdown(markdown) {
 
       switch (tag) {
         case "image":
-          element += `<img src='${src}'>`;
+          element += `<img src='${src}' loading='lazy' decoding='async'>`;
           break;
         case "audio":
           let type = "";
@@ -1089,7 +1180,7 @@ function parse_markdown(markdown) {
           }
           break;
         case "video":
-          element += `<video controls><source src='${src}'></video>`;
+          element += `<video controls preload="metadata"><source src='${src}'></video>`;
           break;
       }
 
