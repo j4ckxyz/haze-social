@@ -426,8 +426,9 @@
 
     .post-actions {
         gap: var(--space-md);
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 
     .post > table td:first-child {

@@ -320,11 +320,12 @@ nav a {
         flex-wrap: nowrap;
     }
 
-    .header-actions,
-    .header-user,
-    .header-logout-form,
-    .new-post-button {
-        display: none;
+    header > .header-actions,
+    header > .header-user,
+    header > .header-logout-form,
+    header > .new-post-button,
+    header > .grow {
+        display: none !important;
     }
 
     .header-brand {
